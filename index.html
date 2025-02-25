@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- viewport-fit=cover allows us to use safe areas on newer devices -->
+  <!-- viewport-fit=cover helps on newer devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AI Crypto Oracle</title>
   <style>
-    /* Body has a matching background gradient */
+    /* Remove body-level flex centering so that we can control centering via a dedicated container */
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
@@ -16,7 +16,7 @@
       box-sizing: border-box;
       min-height: 100vh;
     }
-    /* Fixed header with background matching the page */
+    /* Fixed header with a matching background */
     .nav {
       position: fixed;
       top: 0;
@@ -25,7 +25,7 @@
       background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
       padding: 10px 20px;
       z-index: 1000;
-      /* transform will help adjust for keyboard viewport changes */
+      /* We'll adjust this transform when the viewport changes */
       transform: translateY(0);
     }
     .nav a {
@@ -40,13 +40,21 @@
       color: #33ffdd;
       text-shadow: 0 0 8px #00ffcc;
     }
-    /* Content margin-top is increased so it doesn't get hidden under the header */
+    /* A new container that holds your content and centers it in the space below the header */
+    .main-container {
+      margin-top: 60px; /* header height + a small gap */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 60px);
+      width: 100%;
+    }
     .content {
       text-align: center;
       max-width: 600px;
       width: 100%;
       box-sizing: border-box;
-      margin-top: 70px;
     }
     h1 {
       font-size: 2.5em;
@@ -62,7 +70,7 @@
       margin: 0 0 20px;
       line-height: 1.5;
     }
-    /* Default styles for larger screens */
+    /* Default layout for larger screens */
     .input-container {
       display: flex;
       align-items: center;
@@ -197,31 +205,32 @@
     <a href="#" onclick="showPage('about')">About</a>
   </div>
 
-  <div id="home" class="content">
-    <h1>AI Crypto Oracle</h1>
-    <p>Powered by xAI’s cutting-edge quantum crypto-prediction engine. Ask, and the machine shall decree your fate.</p>
-    <div class="input-container">
-      <img id="coinImage" src="" alt="Coin Icon">
-      <input type="text" id="coinInput" placeholder="Enter a coin (e.g., Bitcoin or BTC)" oninput="searchCoin()" onkeypress="if(event.key === 'Enter') analyzeCoin()">
-      <button onclick="analyzeCoin()">Consult the Oracle</button>
+  <div class="main-container">
+    <div id="home" class="content">
+      <h1>AI Crypto Oracle</h1>
+      <p>Powered by xAI’s cutting-edge quantum crypto-prediction engine. Ask, and the machine shall decree your fate.</p>
+      <div class="input-container">
+        <img id="coinImage" src="" alt="Coin Icon">
+        <input type="text" id="coinInput" placeholder="Enter a coin (e.g., Bitcoin or BTC)" oninput="searchCoin()" onkeypress="if(event.key === 'Enter') analyzeCoin()">
+        <button onclick="analyzeCoin()">Consult the Oracle</button>
+      </div>
+      <div id="loading" class="pulse">Processing through neural blockchain matrix...</div>
+      <div id="result"></div>
+      <div id="shareLink" onclick="copyShareLink()">Share</div>
     </div>
-    <div id="loading" class="pulse">Processing through neural blockchain matrix...</div>
-    <div id="result"></div>
-    <div id="shareLink" onclick="copyShareLink()">Share</div>
-  </div>
 
-  <div id="about" class="content" style="display: none;">
-    <h1>About AI Crypto Oracle</h1>
-    <div class="about-content">
-      <p>Welcome to <strong>AI Crypto Oracle</strong>, your satirical guide to the wild world of cryptocurrency! This site uses a playful, made-up AI to humorously tell you <em>NO</em> whenever you ask if you should buy a crypto coin. It’s not real financial advice, nor is it remotely serious—think of it as a fun, absurd experiment powered by xAI’s whimsical imagination.</p>
-      <p>We’re not here to tell you what to do with your money (or your memes). Go ahead, buy that coin, sell it, hodl it, or toss it in the digital void—do whatever you want! But if you have too much money you want to spend, why not buy us a coffee? <a href="https://www.buymeacoffee.com/barelysmartai" target="_blank" class="coffee-link">Buy Me a Coffee</a><br><strong>We can 100% guarantee a 0% return if you buy us a coffee.</strong></p>
-      <p>Enjoy the satire, but always consult actual financial experts and do your own research before making any investment decisions. Or don’t—your call!</p>
+    <div id="about" class="content" style="display: none;">
+      <h1>About AI Crypto Oracle</h1>
+      <div class="about-content">
+        <p>Welcome to <strong>AI Crypto Oracle</strong>, your satirical guide to the wild world of cryptocurrency! This site uses a playful, made-up AI to humorously tell you <em>NO</em> whenever you ask if you should buy a crypto coin. It’s not real financial advice, nor is it remotely serious—think of it as a fun, absurd experiment powered by xAI’s whimsical imagination.</p>
+        <p>We’re not here to tell you what to do with your money (or your memes). Go ahead, buy that coin, sell it, hodl it, or toss it in the digital void—do whatever you want! But if you have too much money you want to spend, why not buy us a coffee? <a href="https://www.buymeacoffee.com/barelysmartai" target="_blank" class="coffee-link">Buy Me a Coffee</a><br><strong>We can 100% guarantee a 0% return if you buy us a coffee.</strong></p>
+        <p>Enjoy the satire, but always consult actual financial experts and do your own research before making any investment decisions. Or don’t—your call!</p>
+      </div>
     </div>
   </div>
 
   <script>
-    // When the visual viewport resizes (for example, when the on-screen keyboard opens)
-    // we adjust the header position via transform so it stays at the top.
+    // Adjust the header when the visual viewport changes (for example, when the keyboard opens)
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', function() {
         document.querySelector('.nav').style.transform =
