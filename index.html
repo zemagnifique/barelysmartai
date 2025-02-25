@@ -2,31 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- viewport-fit=cover helps on newer devices -->
+  <!-- viewport-fit=cover for modern devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AI Crypto Oracle</title>
   <style>
-    /* Remove body-level flex centering so that we can control centering via a dedicated container */
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
       color: #00ffcc;
-      margin: 0;
       padding: 20px;
       box-sizing: border-box;
-      min-height: 100vh;
     }
-    /* Fixed header with a matching background */
+    /* Fixed header with matching background */
     .nav {
       position: fixed;
-      top: 0;
       left: 0;
       width: 100%;
       background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
       padding: 10px 20px;
       z-index: 1000;
-      /* We'll adjust this transform when the viewport changes */
-      transform: translateY(0);
+      top: 0; /* initial top offset */
+      transition: top 0.3s ease;
     }
     .nav a {
       color: #00ffcc;
@@ -40,9 +41,9 @@
       color: #33ffdd;
       text-shadow: 0 0 8px #00ffcc;
     }
-    /* A new container that holds your content and centers it in the space below the header */
+    /* Main container centers content in remaining viewport space */
     .main-container {
-      margin-top: 60px; /* header height + a small gap */
+      margin-top: 60px; /* space for header */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -230,14 +231,14 @@
   </div>
 
   <script>
-    // Adjust the header when the visual viewport changes (for example, when the keyboard opens)
+    // Instead of using a transform, update the header's top property directly
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', function() {
-        document.querySelector('.nav').style.transform =
-          'translateY(' + window.visualViewport.offsetTop + 'px)';
+        document.querySelector('.nav').style.top = window.visualViewport.offsetTop + 'px';
       });
     }
 
+    // (Existing script logic for coin fetching, search, analyze, etc. remains unchanged)
     const reasons = [
       "because the neural net detected a 98% chance of cosmic rug-pull.",
       "since the quantum hash vibes are misaligned with Saturn’s orbit.",
