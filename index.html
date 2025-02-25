@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Crypto Oracle</title>
   <style>
+    /* Ensure no scrollbars and fixed viewport height */
+    html, body {
+      height: 100vh;
+      overflow: hidden;
+    }
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
@@ -13,7 +18,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      height: 100vh; /* Changed from min-height to height */
       margin: 0;
       padding: 20px;
       box-sizing: border-box;
@@ -61,7 +66,7 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 20px;
-      flex-wrap: nowrap; /* Button stays to the right */
+      flex-wrap: nowrap;
     }
     input[type="text"] {
       padding: 12px 20px;
@@ -155,8 +160,11 @@
     }
     /* Responsive Styles */
     @media (max-width: 768px) {
+      body {
+        padding: 10px; /* reduce padding so content fits */
+      }
       .input-container {
-        flex-wrap: wrap; /* Stack elements on smaller screens */
+        flex-wrap: wrap;
       }
       input[type="text"], button {
         width: 100%;
