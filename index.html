@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Crypto Oracle</title>
   <style>
-    /* Ensure no scrollbars and fixed viewport height */
-    html, body {
-      height: 100vh;
-      overflow: hidden;
-    }
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
@@ -18,7 +13,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh; /* Changed from min-height to height */
+      min-height: 100vh;
       margin: 0;
       padding: 20px;
       box-sizing: border-box;
@@ -66,7 +61,7 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 20px;
-      flex-wrap: nowrap;
+      flex-wrap: nowrap; /* Button stays to the right */
     }
     input[type="text"] {
       padding: 12px 20px;
@@ -160,11 +155,8 @@
     }
     /* Responsive Styles */
     @media (max-width: 768px) {
-      body {
-        padding: 10px; /* reduce padding so content fits */
-      }
       .input-container {
-        flex-wrap: wrap;
+        flex-wrap: wrap; /* Stack elements on smaller screens */
       }
       input[type="text"], button {
         width: 100%;
@@ -229,7 +221,7 @@
       "because the neural net detected a 98% chance of cosmic rug-pull.",
       "since the quantum hash vibes are misaligned with Saturn’s orbit.",
       "because the AI saw a bearish meme on X.",
-      "due to excessive volatility in the Ethereum shadow realm.",
+      "due to excessive volatility in the Ethereum shadow realm.",g
       "because the blockchain gods demand a blood moon first.",
       "since our predictive AI smelled FUD in the digital wind.",
       "because the coin’s energy signature is giving dial-up modem vibes.",
