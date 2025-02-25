@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Crypto Oracle</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: #00ffcc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .nav a {
+            color: #00ffcc;
+            text-decoration: none;
+            font-size: 1em;
+            margin-right: 20px;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px #00ffcc;
+        }
+        .nav a:hover {
+            color: #33ffdd;
+            text-shadow: 0 0 8px #00ffcc;
+        }
+        .content {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px #00ffcc;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1em;
+            color: #66ffcc;
+            text-align: center;
+            margin: 0 0 20px;
+            line-height: 1.5;
+        }
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 12px 20px;
+            font-size: 1.1em;
+            width: 300px;
+            border: 2px solid #00ffcc;
+            border-radius: 25px;
+            background: #1a1a1a;
+            color: #fff;
+            margin-right: 15px;
+            outline: none;
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+            transition: box-shadow 0.3s ease;
+        }
+        input[type="text"]:focus {
+            box-shadow: 0 0 12px rgba(0, 255, 204, 0.8);
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            background: #00ffcc;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 8px #00ffcc;
+            transition: box-shadow 0.3s ease, background 0.3s ease;
+        }
+        button:hover {
+            background: #33ffdd;
+            box-shadow: 0 0 12px #00ffcc;
+        }
+        #loading {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #66ffcc;
+            text-shadow: 0 0 5px #00ffcc;
+            display: none;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #ff3366;
+            text-shadow: 0 0 8px #ff3366;
+            display: none;
+            text-align: center;
+        }
+        #shareLink {
+            margin-top: 15px;
+            font-size: 1em;
+            color: #00ffcc;
+            display: none;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        #shareLink:hover {
+            color: #33ffdd;
+            text-shadow: 0 0 8px #00ffcc;
+        }
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        #coinImage {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            display: none;
+        }
+        .about-content {
+            max-width: 600px;
+            padding: 20px;
+        }
+        .coffee-link {
+            color: #ffcc00;
+            text-decoration: underline;
+            cursor: pointer;
+            text-shadow: 0 0 5px #ffcc00;
+        }
+        .coffee-link:hover {
+            color: #ffdd33;
+            text-shadow: 0 0 8px #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="#" onclick="showPage('home')">Home</a>
+        <a href="#" onclick="showPage('about')">About</a>
+    </div>
+
+    <div id="home" class="content">
+        <h1>AI Crypto Oracle</h1>
+        <p>Powered by xAI’s cutting-edge quantum crypto-prediction engine. Ask, and the machine shall decree your fate.</p>
+        <div class="input-container">
+            <img id="coinImage" src="" alt="Coin Icon">
+            <input type="text" id="coinInput" placeholder="Enter a coin (e.g., Bitcoin or BTC)" oninput="searchCoin()" onkeypress="if(event.key === 'Enter') analyzeCoin()">
+            <button onclick="analyzeCoin()">Consult the Oracle</button>
+        </div>
+        <div id="loading" class="pulse">Processing through neural blockchain matrix...</div>
+        <div id="result"></div>
+        <div id="shareLink" onclick="copyShareLink()">Share</div>
+    </div>
+
+    <div id="about" class="content" style="display: none;">
+        <h1>About AI Crypto Oracle</h1>
+        <div class="about-content">
+            <p>Welcome to <strong>AI Crypto Oracle</strong>, your satirical guide to the wild world of cryptocurrency! This site uses a playful, made-up AI to humorously tell you <em>NO</em> whenever you ask if you should buy a crypto coin. It’s not real financial advice, nor is it remotely serious—think of it as a fun, absurd experiment powered by xAI’s whimsical imagination.</p>
+            <p>We’re not here to tell you what to do with your money (or your memes). Go ahead, buy that coin, sell it, hodl it, or toss it in the digital void—do whatever you want! But if you have too much money you want to spend, why not buy us a coffee? <a href="https://www.buymeacoffee.com/aicryptooracle" target="_blank" class="coffee-link">Buy Me a Coffee</a><br><strong>We can 100% guarantee a 0% return if you buy us a coffee.</strong></p>
+            <p>Enjoy the satire, but always consult actual financial experts and do your own research before making any investment decisions. Or don’t—your call!</p>
+        </div>
+    </div>
+
+    <script>
+        const reasons = [
+            "because the neural net detected a 98% chance of cosmic rug-pull.",
+            "since the quantum hash vibes are misaligned with Saturn’s orbit.",
+            "because the AI saw a bearish meme on X.",
+            "due to excessive volatility in the Ethereum shadow realm.",
+            "because the blockchain gods demand a blood moon first.",
+            "since our predictive AI smelled FUD in the digital wind.",
+            "because the coin’s energy signature is giving dial-up modem vibes.",
+            "due to a detected anomaly in the HODL continuum.",
+            "because the AI’s pet algorithm barked at the chart.",
+            "since the decentralized tea leaves spell ‘wen dump?’",
+            "because the market cap is haunted by ghost wallets.",
+            "since the AI’s flux capacitor rejected the transaction.",
+            "because the coin’s whitepaper reads like a sci-fi flop.",
+            "due to a sudden spike in intergalactic FOMO interference.",
+            "because the hash rate is dancing to a polka beat.",
+            "since the AI’s crystal ball fogged up with despair.",
+            "because the coin’s logo looks like a rejected NFT.",
+            "due to a misalignment in the proof-of-stake zodiac.",
+            "because the blockchain fairies whispered ‘nope’ at midnight.",
+            "since the AI detected a glitch in the greed matrix."
+        ];
+
+        let coinData = {};
+
+        // Fetch top 250 coins by market cap from CoinGecko on page load
+        async function fetchPopularCoins() {
+            const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                data.forEach(coin => {
+                    coinData[coin.name.toLowerCase()] = coin.image; // Store by lowercase name
+                    coinData[coin.symbol.toUpperCase()] = coin.image; // Store by uppercase ticker (e.g., "BTC")
+                });
+            } catch (error) {
+                console.error("Error fetching popular coins:", error);
+            }
+        }
+
+        // Search for the most popular coin by name or ticker (3+ characters)
+        async function searchCoin() {
+            const input = document.getElementById("coinInput").value.trim().toLowerCase();
+            const coinImage = document.getElementById("coinImage");
+
+            if (input.length < 3) {
+                coinImage.style.display = "none";
+                return;
+            }
+
+            // Check if we already have the coin in cache
+            if (coinData[input] || coinData[input.toUpperCase()]) {
+                coinImage.src = coinData[input] || coinData[input.toUpperCase()];
+                coinImage.style.display = "inline";
+                return;
+            }
+
+            const url = `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(input)}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.coins && data.coins.length > 0) {
+                    const popularCoin = data.coins[0]; // Use the top result from search (most popular/relevant)
+                    const marketDataUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${popularCoin.id}&order=market_cap_desc&per_page=1&page=1&sparkline=false`;
+                    const marketResponse = await fetch(marketDataUrl);
+                    const marketData = await marketResponse.json();
+                    if (marketData && marketData.length > 0) {
+                        const coin = marketData[0];
+                        coinData[coin.name.toLowerCase()] = coin.image;
+                        coinData[coin.symbol.toUpperCase()] = coin.image;
+                        coinImage.src = coin.image;
+                        coinImage.style.display = "inline";
+                        // Update input to show the full coin name
+                        document.getElementById("coinInput").value = coin.name;
+                    } else {
+                        coinImage.style.display = "none";
+                    }
+                } else {
+                    coinImage.style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error searching coin data:", error);
+                coinImage.style.display = "none";
+            }
+        }
+
+        function analyzeCoin() {
+            const coin = document.getElementById("coinInput").value.trim();
+            const resultDiv = document.getElementById("result");
+            const loadingDiv = document.getElementById("loading");
+            const shareLinkDiv = document.getElementById("shareLink");
+
+            if (!coin) {
+                resultDiv.innerHTML = "ERROR: Input a coin, human!";
+                resultDiv.style.display = "block";
+                loadingDiv.style.display = "none";
+                shareLinkDiv.style.display = "none";
+                return;
+            }
+
+            // Show loading
+            resultDiv.style.display = "none";
+            shareLinkDiv.style.display = "none";
+            loadingDiv.style.display = "block";
+
+            // Simulate AI "thinking" for 2-3 seconds
+            setTimeout(() => {
+                const randomReason = reasons[Math.floor(Math.random() * reasons.length)];
+                const resultText = `NO, don’t buy ${coin} ${randomReason}`;
+                resultDiv.innerHTML = resultText;
+                resultDiv.style.display = "block";
+                loadingDiv.style.display = "none";
+
+                // Store the shareable link in a data attribute
+                const encodedCoin = encodeURIComponent(coin);
+                const encodedReason = encodeURIComponent(randomReason);
+                const shareUrl = `${window.location.href}?coin=${encodedCoin}&reason=${encodedReason}`;
+                shareLinkDiv.setAttribute("data-link", shareUrl);
+                shareLinkDiv.style.display = "block";
+            }, Math.random() * 1000 + 2000); // Random delay between 2-3 seconds
+        }
+
+        function copyShareLink() {
+            const shareLinkDiv = document.getElementById("shareLink");
+            const shareUrl = shareLinkDiv.getAttribute("data-link");
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert("Link copied to clipboard! Spread the oracle’s wisdom.");
+            }).catch(() => {
+                alert("Failed to copy link. The machine disapproves.");
+            });
+        }
+
+        function showPage(page) {
+            const home = document.getElementById("home");
+            const about = document.getElementById("about");
+            if (page === "home") {
+                home.style.display = "block";
+                about.style.display = "none";
+            } else if (page === "about") {
+                home.style.display = "none";
+                about.style.display = "block";
+            }
+        }
+
+        // Fetch coin data on page load and handle shared URLs
+        window.onload = async () => {
+            await fetchPopularCoins(); // Load popular coins for caching
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const coin = urlParams.get("coin");
+            const reason = urlParams.get("reason");
+            if (coin && reason) {
+                const resultDiv = document.getElementById("result");
+                const shareLinkDiv = document.getElementById("shareLink");
+                resultDiv.innerHTML = `NO, don’t buy ${decodeURIComponent(coin)} ${decodeURIComponent(reason)}`;
+                resultDiv.style.display = "block";
+                document.getElementById("coinInput").value = decodeURIComponent(coin);
+                await searchCoin(); // Fetch and show image for shared coin
+                shareLinkDiv.setAttribute("data-link", window.location.href);
+                shareLinkDiv.style.display = "block";
+            }
+        };
+    </script>
+</body>
+</html>
