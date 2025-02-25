@@ -2,27 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- viewport-fit=cover allows us to use safe areas on newer devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AI Crypto Oracle</title>
   <style>
+    /* Body has a matching background gradient */
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
       color: #00ffcc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      /* Allow scrolling naturally */
-      min-height: 100vh;
       margin: 0;
       padding: 20px;
       box-sizing: border-box;
+      min-height: 100vh;
     }
+    /* Fixed header with background matching the page */
     .nav {
       position: fixed;
-      top: 20px; /* initial offset */
-      left: 20px;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+      padding: 10px 20px;
       z-index: 1000;
+      /* transform will help adjust for keyboard viewport changes */
+      transform: translateY(0);
     }
     .nav a {
       color: #00ffcc;
@@ -36,12 +40,13 @@
       color: #33ffdd;
       text-shadow: 0 0 8px #00ffcc;
     }
+    /* Content margin-top is increased so it doesn't get hidden under the header */
     .content {
       text-align: center;
       max-width: 600px;
       width: 100%;
       box-sizing: border-box;
-      margin-top: 80px; /* ensure content doesn't hide under fixed header */
+      margin-top: 70px;
     }
     h1 {
       font-size: 2.5em;
@@ -57,7 +62,7 @@
       margin: 0 0 20px;
       line-height: 1.5;
     }
-    /* Larger screen input layout */
+    /* Default styles for larger screens */
     .input-container {
       display: flex;
       align-items: center;
@@ -173,10 +178,6 @@
       }
     }
     @media (max-width: 480px) {
-      .nav {
-        top: 10px;
-        left: 10px;
-      }
       .nav a {
         font-size: 0.9em;
         margin-right: 10px;
@@ -219,12 +220,12 @@
   </div>
 
   <script>
-    // Adjust the nav's position when the visual viewport changes (e.g., when the keyboard appears)
+    // When the visual viewport resizes (for example, when the on-screen keyboard opens)
+    // we adjust the header position via transform so it stays at the top.
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', function() {
-        // Offset by a constant (e.g., 20px) plus the current viewport offset
-        document.querySelector('.nav').style.top =
-          (window.visualViewport.offsetTop + 20) + 'px';
+        document.querySelector('.nav').style.transform =
+          'translateY(' + window.visualViewport.offsetTop + 'px)';
       });
     }
 
