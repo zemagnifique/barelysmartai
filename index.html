@@ -2,32 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- viewport-fit=cover for modern devices -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Crypto Oracle</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
       color: #00ffcc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* Allow scrolling */
+      min-height: 100vh;
+      margin: 0;
       padding: 20px;
       box-sizing: border-box;
     }
-    /* Fixed header with matching background */
     .nav {
       position: fixed;
-      left: 0;
-      width: 100%;
-      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-      padding: 10px 20px;
+      top: 20px;
+      left: 20px;
       z-index: 1000;
-      top: 0; /* initial top offset */
-      transition: top 0.3s ease;
     }
     .nav a {
       color: #00ffcc;
@@ -41,21 +36,13 @@
       color: #33ffdd;
       text-shadow: 0 0 8px #00ffcc;
     }
-    /* Main container centers content in remaining viewport space */
-    .main-container {
-      margin-top: 60px; /* space for header */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: calc(100vh - 60px);
-      width: 100%;
-    }
     .content {
       text-align: center;
       max-width: 600px;
       width: 100%;
       box-sizing: border-box;
+      /* Add top margin to ensure content isn’t hidden under the fixed header */
+      margin-top: 80px;
     }
     h1 {
       font-size: 2.5em;
@@ -71,7 +58,7 @@
       margin: 0 0 20px;
       line-height: 1.5;
     }
-    /* Default layout for larger screens */
+    /* Default styles for larger screens */
     .input-container {
       display: flex;
       align-items: center;
@@ -187,6 +174,10 @@
       }
     }
     @media (max-width: 480px) {
+      .nav {
+        top: 10px;
+        left: 10px;
+      }
       .nav a {
         font-size: 0.9em;
         margin-right: 10px;
@@ -206,39 +197,29 @@
     <a href="#" onclick="showPage('about')">About</a>
   </div>
 
-  <div class="main-container">
-    <div id="home" class="content">
-      <h1>AI Crypto Oracle</h1>
-      <p>Powered by xAI’s cutting-edge quantum crypto-prediction engine. Ask, and the machine shall decree your fate.</p>
-      <div class="input-container">
-        <img id="coinImage" src="" alt="Coin Icon">
-        <input type="text" id="coinInput" placeholder="Enter a coin (e.g., Bitcoin or BTC)" oninput="searchCoin()" onkeypress="if(event.key === 'Enter') analyzeCoin()">
-        <button onclick="analyzeCoin()">Consult the Oracle</button>
-      </div>
-      <div id="loading" class="pulse">Processing through neural blockchain matrix...</div>
-      <div id="result"></div>
-      <div id="shareLink" onclick="copyShareLink()">Share</div>
+  <div id="home" class="content">
+    <h1>AI Crypto Oracle</h1>
+    <p>Powered by xAI’s cutting-edge quantum crypto-prediction engine. Ask, and the machine shall decree your fate.</p>
+    <div class="input-container">
+      <img id="coinImage" src="" alt="Coin Icon">
+      <input type="text" id="coinInput" placeholder="Enter a coin (e.g., Bitcoin or BTC)" oninput="searchCoin()" onkeypress="if(event.key === 'Enter') analyzeCoin()">
+      <button onclick="analyzeCoin()">Consult the Oracle</button>
     </div>
+    <div id="loading" class="pulse">Processing through neural blockchain matrix...</div>
+    <div id="result"></div>
+    <div id="shareLink" onclick="copyShareLink()">Share</div>
+  </div>
 
-    <div id="about" class="content" style="display: none;">
-      <h1>About AI Crypto Oracle</h1>
-      <div class="about-content">
-        <p>Welcome to <strong>AI Crypto Oracle</strong>, your satirical guide to the wild world of cryptocurrency! This site uses a playful, made-up AI to humorously tell you <em>NO</em> whenever you ask if you should buy a crypto coin. It’s not real financial advice, nor is it remotely serious—think of it as a fun, absurd experiment powered by xAI’s whimsical imagination.</p>
-        <p>We’re not here to tell you what to do with your money (or your memes). Go ahead, buy that coin, sell it, hodl it, or toss it in the digital void—do whatever you want! But if you have too much money you want to spend, why not buy us a coffee? <a href="https://www.buymeacoffee.com/barelysmartai" target="_blank" class="coffee-link">Buy Me a Coffee</a><br><strong>We can 100% guarantee a 0% return if you buy us a coffee.</strong></p>
-        <p>Enjoy the satire, but always consult actual financial experts and do your own research before making any investment decisions. Or don’t—your call!</p>
-      </div>
+  <div id="about" class="content" style="display: none;">
+    <h1>About AI Crypto Oracle</h1>
+    <div class="about-content">
+      <p>Welcome to <strong>AI Crypto Oracle</strong>, your satirical guide to the wild world of cryptocurrency! This site uses a playful, made-up AI to humorously tell you <em>NO</em> whenever you ask if you should buy a crypto coin. It’s not real financial advice, nor is it remotely serious—think of it as a fun, absurd experiment powered by xAI’s whimsical imagination.</p>
+      <p>We’re not here to tell you what to do with your money (or your memes). Go ahead, buy that coin, sell it, hodl it, or toss it in the digital void—do whatever you want! But if you have too much money you want to spend, why not buy us a coffee? <a href="https://www.buymeacoffee.com/barelysmartai" target="_blank" class="coffee-link">Buy Me a Coffee</a><br><strong>We can 100% guarantee a 0% return if you buy us a coffee.</strong></p>
+      <p>Enjoy the satire, but always consult actual financial experts and do your own research before making any investment decisions. Or don’t—your call!</p>
     </div>
   </div>
 
   <script>
-    // Instead of using a transform, update the header's top property directly
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', function() {
-        document.querySelector('.nav').style.top = window.visualViewport.offsetTop + 'px';
-      });
-    }
-
-    // (Existing script logic for coin fetching, search, analyze, etc. remains unchanged)
     const reasons = [
       "because the neural net detected a 98% chance of cosmic rug-pull.",
       "since the quantum hash vibes are misaligned with Saturn’s orbit.",
