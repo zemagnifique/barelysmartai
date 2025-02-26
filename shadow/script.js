@@ -31,15 +31,18 @@ window.onload = function() {
     
     // Initialize keys
     window.keys = keys = {};
-    
-    // Set up event listeners for keyboard
+
+    // Create a separate global object for keyboard input
+    window.keyboardState = {};
+
+    // Setup keyboard event listeners to update keyboardState
     window.addEventListener('keydown', function(e) {
-        keys[e.key] = true;
+    keyboardState[e.key] = true;
     });
-    
     window.addEventListener('keyup', function(e) {
-        keys[e.key] = false;
+    keyboardState[e.key] = false;
     });
+
     
     // Initialize game objects
     resetGame();

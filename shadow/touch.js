@@ -136,12 +136,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle touch controls in game loop
     const gameLoop = function() {
         // Map touch controls to key presses
-        if (window.keys) {
-            keys.ArrowLeft = keys.ArrowLeft || touchControls.left;
-            keys.ArrowRight = keys.ArrowRight || touchControls.right;
-            keys.z = keys.z || touchControls.jump;
-            keys.x = keys.x || touchControls.attack;
-            keys[' '] = keys[' '] || touchControls.space;
+        if (window.keys) {         
+            // Combine keyboard and touch inputs so that either can trigger an action:
+            keys.ArrowLeft = keyboardState.ArrowLeft || touchControls.left;
+            keys.ArrowRight = keyboardState.ArrowRight || touchControls.right;
+            keys.ArrowUp = keyboardState.ArrowUp || touchControls.jump;
+            keys.z = keyboardState.z || touchControls.jump;
+            keys.x = keyboardState.x || touchControls.attack;
+            keys[' '] = keyboardState[' '] || touchControls.space;
+
         }
         
         // Update space button visibility
