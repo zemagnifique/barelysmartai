@@ -352,6 +352,12 @@
                 // Update player state
                 updatePlayerState(dt);
                 
+                // Update enemies
+                updateEnemies(dt);
+                
+                // Check collisions
+                checkCollisions();
+                
                 // Draw background
                 drawBackground();
                 
@@ -452,7 +458,12 @@
                 attacking: false,
                 attackTimer: 0,
                 invulnerable: 0,
-                wallSliding: false
+                wallSliding: false,
+                wallCling: false,
+                wallDirection: 0,
+                wallJumps: 0, // Track consecutive wall jumps
+                maxWallJumps: 5, // Maximum consecutive wall jumps allowed
+                wallJumpCooldown: 0 // Cooldown between wall jumps
             };
             
             // Initialize collections
@@ -530,6 +541,72 @@
                         type: 'normal'
                     });
                     
+                    // Add enemies
+                    
+                    // Patrol enemy on first platform
+                    enemies.push({
+                        x: 150,
+                        y: GAME_HEIGHT - 160,
+                        width: 30,
+                        height: 40,
+                        type: 'patrol',
+                        health: 1,
+                        speed: 60,
+                        direction: 1,
+                        animFrame: 0,
+                        animTimer: 0
+                    });
+                    
+                    // Flying enemy above
+                    enemies.push({
+                        x: 350,
+                        y: GAME_HEIGHT - 250,
+                        width: 25,
+                        height: 25,
+                        type: 'flyer',
+                        health: 1,
+                        speed: 80,
+                        direction: 1,
+                        yOffset: 0,
+                        amplitude: 30,
+                        frequency: 3,
+                        animFrame: 0,
+                        animTimer: 0
+                    });
+                    
+                    // Projectile thrower on middle platform
+                    enemies.push({
+                        x: 500,
+                        y: GAME_HEIGHT - 220,
+                        width: 30,
+                        height: 40,
+                        type: 'thrower',
+                        health: 1,
+                        attackCooldown: 0,
+                        attackInterval: 2,
+                        animFrame: 0,
+                        animTimer: 0
+                    });
+                    
+                    // Jumping enemy
+                    enemies.push({
+                        x: 700,
+                        y: GAME_HEIGHT - 190,
+                        width: 25,
+                        height: 30,
+                        type: 'jumper',
+                        health: 1,
+                        speed: 40,
+                        jumpPower: 350,
+                        direction: -1,
+                        jumpCooldown: 0,
+                        jumpInterval: 1.5,
+                        dy: 0,
+                        onGround: true,
+                        animFrame: 0,
+                        animTimer: 0
+                    });
+                    
                     break;
             }
             
@@ -557,11 +634,42 @@
                 player.state = 'idle';
             }
             
+            // Wall Jump cooldown
+            if (player.wallJumpCooldown > 0) {
+                player.wallJumpCooldown -= dt;
+            }
+            
             // Jump
-            if ((keys.ArrowUp || keys.z) && player.canJump) {
-                player.dy = -player.jumpStrength;
-                player.canJump = false;
-                player.state = 'jump';
+            if ((keys.ArrowUp || keys.z)) {
+                if (player.canJump) {
+                    // Regular jump
+                    player.dy = -player.jumpStrength;
+                    player.canJump = false;
+                    player.state = 'jump';
+                } else if (player.wallCling && player.wallJumpCooldown <= 0 && player.wallJumps < player.maxWallJumps) {
+                    // Wall jump - push away from wall and upward
+                    player.dy = -player.jumpStrength * 0.9;
+                    player.dx = player.wallDirection * player.speed * 1.1;
+                    player.wallCling = false;
+                    player.wallSliding = false;
+                    player.state = 'jump';
+                    player.wallJumps++;
+                    player.wallJumpCooldown = 0.15; // Short cooldown between wall jumps
+                    
+                    // Create wall jump effect
+                    for (let i = 0; i < 5; i++) {
+                        particles.push({
+                            x: player.x + (player.wallDirection < 0 ? player.width : 0),
+                            y: player.y + player.height/2 + (Math.random() - 0.5) * 20,
+                            dx: player.wallDirection * (20 + Math.random() * 20),
+                            dy: (Math.random() - 0.5) * 40,
+                            size: 2 + Math.random() * 3,
+                            color: COLORS.white,
+                            lifetime: 0,
+                            maxLifetime: 0.3
+                        });
+                    }
+                }
             }
             
             // Attack
@@ -596,6 +704,7 @@
             
             // Wall jumping logic
             player.wallSliding = false;
+            player.wallCling = false;
             
             // Check platform collisions
             for (let platform of platforms) {
@@ -610,6 +719,7 @@
                         player.y = platform.y - player.height;
                         player.dy = 0;
                         player.canJump = true;
+                        player.wallJumps = 0; // Reset wall jumps when landing
                     }
                     // Coming from below (hitting ceiling)
                     else if (player.y - player.dy >= platform.y + platform.height) {
@@ -621,9 +731,11 @@
                         player.x = platform.x - player.width;
                         player.dx = 0;
                         
-                        // Wall sliding
+                        // Wall sliding and clinging
                         if (!player.canJump && player.dy > 0) {
                             player.wallSliding = true;
+                            player.wallCling = true;
+                            player.wallDirection = 1; // Right wall
                             player.dy = Math.min(player.dy, 80); // Slow fall when wall sliding
                         }
                     }
@@ -632,9 +744,11 @@
                         player.x = platform.x + platform.width;
                         player.dx = 0;
                         
-                        // Wall sliding
+                        // Wall sliding and clinging
                         if (!player.canJump && player.dy > 0) {
                             player.wallSliding = true;
+                            player.wallCling = true;
+                            player.wallDirection = -1; // Left wall
                             player.dy = Math.min(player.dy, 80); // Slow fall when wall sliding
                         }
                     }
@@ -642,13 +756,32 @@
             }
             
             // Screen boundaries
-            if (player.x < 0) player.x = 0;
-            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            if (player.x < 0) {
+                player.x = 0;
+                // Allow wall climbing on screen edges too
+                if (!player.canJump && player.dy > 0) {
+                    player.wallSliding = true;
+                    player.wallCling = true;
+                    player.wallDirection = 1; // Right wall (pushing left)
+                    player.dy = Math.min(player.dy, 80); // Slow fall when wall sliding
+                }
+            }
+            if (player.x + player.width > canvas.width) {
+                player.x = canvas.width - player.width;
+                // Allow wall climbing on screen edges too
+                if (!player.canJump && player.dy > 0) {
+                    player.wallSliding = true;
+                    player.wallCling = true;
+                    player.wallDirection = -1; // Left wall (pushing right)
+                    player.dy = Math.min(player.dy, 80); // Slow fall when wall sliding
+                }
+            }
             if (player.y < 0) player.y = 0;
             if (player.y + player.height > canvas.height) {
                 player.y = canvas.height - player.height;
                 player.dy = 0;
                 player.canJump = true;
+                player.wallJumps = 0; // Reset wall jumps when landing
             }
             
             // Update projectiles
@@ -792,27 +925,80 @@
             );
             
             // Draw scarf
-            ctx.fillStyle = COLORS.white;
-            const scarfWave = Math.sin(Date.now() * 0.01) * 3;
+            
+            // Scarf behavior depends on movement state
+            let scarfWave = Math.sin(Date.now() * 0.01) * 3;
+            let scarfLength = 10;
+            
+            if (player.dx !== 0) {
+                // Running scarf - flows behind
+                scarfLength = 15;
+                scarfWave = Math.sin(Date.now() * 0.015) * 5;
+            } else if (player.wallCling) {
+                // Wall climbing scarf - points downward
+                scarfLength = 12;
+                scarfWave = Math.sin(Date.now() * 0.008) * 2;
+            }
             
             ctx.beginPath();
             ctx.moveTo(
                 player.x + (player.facing > 0 ? 0 : player.width),
                 player.y + player.height/4
             );
-            ctx.lineTo(
-                player.x + (player.facing > 0 ? -10 : player.width + 10),
-                player.y + player.height/4 + scarfWave
-            );
-            ctx.lineTo(
-                player.x + (player.facing > 0 ? -5 : player.width + 5),
-                player.y + player.height/2 + scarfWave
-            );
-            ctx.lineTo(
-                player.x + (player.facing > 0 ? 5 : player.width - 5),
-                player.y + player.height/3
-            );
+            
+            // Different scarf animation based on wall climbing
+            if (player.wallCling) {
+                // When wall climbing, scarf points more downward
+                ctx.lineTo(
+                    player.x + (player.facing > 0 ? -5 : player.width + 5),
+                    player.y + player.height/3 + scarfWave
+                );
+                ctx.lineTo(
+                    player.x + (player.facing > 0 ? -2 : player.width + 2),
+                    player.y + player.height/2 + scarfWave
+                );
+                ctx.lineTo(
+                    player.x + (player.facing > 0 ? 5 : player.width - 5),
+                    player.y + player.height/3
+                );
+            } else {
+                // Normal scarf animation
+                ctx.lineTo(
+                    player.x + (player.facing > 0 ? -scarfLength : player.width + scarfLength),
+                    player.y + player.height/4 + scarfWave
+                );
+                ctx.lineTo(
+                    player.x + (player.facing > 0 ? -scarfLength/2 : player.width + scarfLength/2),
+                    player.y + player.height/2 + scarfWave
+                );
+                ctx.lineTo(
+                    player.x + (player.facing > 0 ? 5 : player.width - 5),
+                    player.y + player.height/3
+                );
+            }
             ctx.fill();
+            
+            // Draw wall climbing pose
+            if (player.wallCling) {
+                // Arm reaching to wall
+                ctx.fillStyle = COLORS.black;
+                
+                if (player.wallDirection > 0) { // Right wall
+                    ctx.fillRect(
+                        player.x + player.width - player.width/10,
+                        player.y + player.height/3,
+                        player.width/10,
+                        player.height/4
+                    );
+                } else { // Left wall
+                    ctx.fillRect(
+                        player.x,
+                        player.y + player.height/3,
+                        player.width/10,
+                        player.height/4
+                    );
+                }
+            }
             
             // Reset alpha
             ctx.globalAlpha = 1;
@@ -828,30 +1014,284 @@
                 const x = projectile.x;
                 const y = projectile.y;
                 
-                // Draw shuriken 
+                // Draw shuriken with rotation
+                const rotationAngle = projectile.lifetime * 15; // Rotate based on lifetime
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rotationAngle);
+                
+                // Draw the shuriken shape
                 ctx.beginPath();
-                ctx.moveTo(x, y - size/2);
-                ctx.lineTo(x + size/2, y);
-                ctx.lineTo(x, y + size/2);
-                ctx.lineTo(x - size/2, y);
+                ctx.moveTo(0, -size/2);
+                ctx.lineTo(size/2, 0);
+                ctx.lineTo(0, size/2);
+                ctx.lineTo(-size/2, 0);
                 ctx.closePath();
                 ctx.fill();
                 
                 // Center circle
                 ctx.beginPath();
-                ctx.arc(x, y, size/6, 0, Math.PI * 2);
+                ctx.arc(0, 0, size/6, 0, Math.PI * 2);
                 ctx.fill();
+                
+                ctx.restore();
+            } else if (projectile.type === 'enemy_shuriken') {
+                // Enemy shuriken
+                ctx.fillStyle = COLORS.white;
+                
+                const size = projectile.width;
+                const x = projectile.x;
+                const y = projectile.y;
+                
+                // Draw with opposite rotation
+                const rotationAngle = -projectile.lifetime * 15;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rotationAngle);
+                
+                // Draw the shuriken shape
+                ctx.beginPath();
+                ctx.moveTo(0, -size/2);
+                ctx.lineTo(size/2, 0);
+                ctx.lineTo(0, size/2);
+                ctx.lineTo(-size/2, 0);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Center circle
+                ctx.beginPath();
+                ctx.arc(0, 0, size/6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
             }
         }
         
-        // Function to draw enemy (placeholder)
+        // Function to draw enemy
         function drawEnemy(enemy) {
-            // Will implement later
+            const flickering = Math.floor(Date.now() / 100) % 2 === 0;
+            
+            switch(enemy.type) {
+                case 'patrol':
+                    // Patrol enemy - basic ninja soldier
+                    ctx.fillStyle = COLORS.white;
+                    
+                    // Body
+                    ctx.fillRect(
+                        enemy.x, 
+                        enemy.y, 
+                        enemy.width, 
+                        enemy.height
+                    );
+                    
+                    // Eyes
+                    ctx.fillStyle = COLORS.black;
+                    ctx.fillRect(
+                        enemy.x + (enemy.direction > 0 ? enemy.width*2/3 : enemy.width/4), 
+                        enemy.y + enemy.height/5,
+                        enemy.width/8,
+                        enemy.height/10
+                    );
+                    
+                    // Legs (animated based on frame)
+                    ctx.fillStyle = COLORS.black;
+                    const legOffset = [0, 3, 0, -3][enemy.animFrame];
+                    
+                    // Left leg
+                    ctx.fillRect(
+                        enemy.x + enemy.width/3 - 3,
+                        enemy.y + enemy.height*2/3,
+                        enemy.width/6,
+                        enemy.height/3 + legOffset
+                    );
+                    
+                    // Right leg
+                    ctx.fillRect(
+                        enemy.x + enemy.width*2/3 - 3,
+                        enemy.y + enemy.height*2/3,
+                        enemy.width/6,
+                        enemy.height/3 - legOffset
+                    );
+                    break;
+                    
+                case 'flyer':
+                    // Flying enemy - bird/bat
+                    ctx.fillStyle = COLORS.white;
+                    
+                    // Calculate the current position with sine wave
+                    const currentY = enemy.y + enemy.yOffset;
+                    
+                    // Wings (animated)
+                    const wingFrame = enemy.animFrame;
+                    const wingExtension = [0, 5, 10, 5][wingFrame];
+                    
+                    // Body
+                    ctx.fillRect(
+                        enemy.x + enemy.width/4,
+                        currentY + enemy.height/3,
+                        enemy.width/2,
+                        enemy.height/3
+                    );
+                    
+                    // Wings
+                    ctx.beginPath();
+                    if (enemy.direction > 0) {
+                        // Facing right
+                        ctx.moveTo(enemy.x + enemy.width/2, currentY + enemy.height/3);
+                        ctx.lineTo(enemy.x + enemy.width/2 + wingExtension, currentY);
+                        ctx.lineTo(enemy.x + enemy.width, currentY + enemy.height/3);
+                        ctx.lineTo(enemy.x + enemy.width/2, currentY + enemy.height/2);
+                    } else {
+                        // Facing left
+                        ctx.moveTo(enemy.x + enemy.width/2, currentY + enemy.height/3);
+                        ctx.lineTo(enemy.x + enemy.width/2 - wingExtension, currentY);
+                        ctx.lineTo(enemy.x, currentY + enemy.height/3);
+                        ctx.lineTo(enemy.x + enemy.width/2, currentY + enemy.height/2);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Eyes
+                    ctx.fillStyle = COLORS.black;
+                    ctx.fillRect(
+                        enemy.x + (enemy.direction > 0 ? enemy.width*2/3 : enemy.width/4),
+                        currentY + enemy.height/4,
+                        enemy.width/8,
+                        enemy.height/8
+                    );
+                    break;
+                    
+                case 'jumper':
+                    // Jumping enemy - frog like
+                    ctx.fillStyle = COLORS.white;
+                    
+                    // Body - crouched when on ground, stretched when jumping
+                    const stretchFactor = enemy.onGround ? 0 : Math.min(1, Math.abs(enemy.dy) / 100);
+                    const bodyHeight = enemy.height * (1 - stretchFactor * 0.3);
+                    
+                    ctx.fillRect(
+                        enemy.x,
+                        enemy.y + (enemy.height - bodyHeight),
+                        enemy.width,
+                        bodyHeight
+                    );
+                    
+                    // Eyes
+                    ctx.fillStyle = COLORS.black;
+                    ctx.fillRect(
+                        enemy.x + (enemy.direction > 0 ? enemy.width*2/3 : enemy.width/5),
+                        enemy.y + enemy.height/5,
+                        enemy.width/8,
+                        enemy.height/8
+                    );
+                    
+                    // Legs
+                    if (enemy.onGround) {
+                        // Crouched legs
+                        ctx.fillStyle = COLORS.black;
+                        ctx.fillRect(
+                            enemy.x - enemy.width/4,
+                            enemy.y + enemy.height - enemy.height/4,
+                            enemy.width/4,
+                            enemy.height/4
+                        );
+                        ctx.fillRect(
+                            enemy.x + enemy.width,
+                            enemy.y + enemy.height - enemy.height/4,
+                            enemy.width/4,
+                            enemy.height/4
+                        );
+                    } else {
+                        // Extended legs when jumping
+                        ctx.fillStyle = COLORS.black;
+                        ctx.fillRect(
+                            enemy.x - enemy.width/8,
+                            enemy.y + enemy.height - enemy.height/6,
+                            enemy.width/8,
+                            enemy.height/6
+                        );
+                        ctx.fillRect(
+                            enemy.x + enemy.width,
+                            enemy.y + enemy.height - enemy.height/6,
+                            enemy.width/8,
+                            enemy.height/6
+                        );
+                    }
+                    break;
+                    
+                case 'thrower':
+                    // Projectile throwing enemy
+                    ctx.fillStyle = COLORS.white;
+                    
+                    // Body
+                    ctx.fillRect(
+                        enemy.x, 
+                        enemy.y, 
+                        enemy.width, 
+                        enemy.height
+                    );
+                    
+                    // Eyes
+                    ctx.fillStyle = COLORS.black;
+                    ctx.fillRect(
+                        enemy.x + (enemy.direction > 0 ? enemy.width*2/3 : enemy.width/4), 
+                        enemy.y + enemy.height/5,
+                        enemy.width/8,
+                        enemy.height/10
+                    );
+                    
+                    // Throwing arm animation
+                    if (enemy.attackCooldown < 0.3) {
+                        // Arm in throwing position
+                        ctx.fillStyle = COLORS.black;
+                        if (enemy.direction > 0) {
+                            // Throwing right
+                            ctx.fillRect(
+                                enemy.x + enemy.width/2,
+                                enemy.y + enemy.height/3,
+                                enemy.width,
+                                enemy.height/10
+                            );
+                        } else {
+                            // Throwing left
+                            ctx.fillRect(
+                                enemy.x - enemy.width/2,
+                                enemy.y + enemy.height/3,
+                                enemy.width/2,
+                                enemy.height/10
+                            );
+                        }
+                    } else {
+                        // Arm in normal position
+                        ctx.fillStyle = COLORS.black;
+                        ctx.fillRect(
+                            enemy.x + (enemy.direction > 0 ? enemy.width/2 : 0),
+                            enemy.y + enemy.height/3,
+                            enemy.width/2,
+                            enemy.height/10
+                        );
+                    }
+                    break;
+            }
         }
         
-        // Function to draw particle (placeholder)
+        // Function to draw particle
         function drawParticle(particle) {
-            // Will implement later
+            // Set opacity based on lifetime
+            ctx.globalAlpha = 1 - (particle.lifetime / particle.maxLifetime);
+            
+            ctx.fillStyle = particle.color;
+            ctx.fillRect(particle.x - particle.size/2, particle.y - particle.size/2, particle.size, particle.size);
+            
+            // Update particle lifetime
+            particle.lifetime += 1/60; // Assuming 60fps
+            particle.x += particle.dx * 1/60;
+            particle.y += particle.dy * 1/60;
+            
+            // Reset opacity
+            ctx.globalAlpha = 1;
         }
         
         // Function to draw UI
@@ -907,6 +1347,311 @@
             if (keys[' '] || keys.Space) {
                 resetGame();
                 gameState = 'playing';
+            }
+        }
+        
+        // Function to update enemies
+        function updateEnemies(dt) {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                
+                // Animation timer for all enemies
+                enemy.animTimer += dt;
+                if (enemy.animTimer >= 0.2) { // Frame rate of animation
+                    enemy.animFrame = (enemy.animFrame + 1) % 4; // 4 frames of animation
+                    enemy.animTimer = 0;
+                }
+                
+                // Enemy behavior based on type
+                switch(enemy.type) {
+                    case 'patrol':
+                        // Basic horizontal patrol
+                        enemy.x += enemy.speed * enemy.direction * dt;
+                        
+                        // Check for platform edges or obstacles
+                        let onPlatform = false;
+                        let hitWall = false;
+                        
+                        for (const platform of platforms) {
+                            // Check if on platform
+                            if (enemy.x + enemy.width > platform.x &&
+                                enemy.x < platform.x + platform.width &&
+                                enemy.y + enemy.height >= platform.y &&
+                                enemy.y + enemy.height <= platform.y + 10) {
+                                onPlatform = true;
+                            }
+                            
+                            // Check collision with wall
+                            if ((enemy.direction > 0 && 
+                                 enemy.x + enemy.width + 5 >= platform.x &&
+                                 enemy.x + enemy.width <= platform.x + 5 &&
+                                 enemy.y + enemy.height > platform.y &&
+                                 enemy.y < platform.y + platform.height) ||
+                                (enemy.direction < 0 && 
+                                 enemy.x - 5 <= platform.x + platform.width &&
+                                 enemy.x >= platform.x + platform.width - 5 &&
+                                 enemy.y + enemy.height > platform.y &&
+                                 enemy.y < platform.y + platform.height)) {
+                                hitWall = true;
+                            }
+                        }
+                        
+                        // Check for edge of current platform
+                        const aheadX = enemy.x + enemy.width + (10 * enemy.direction);
+                        const aheadY = enemy.y + enemy.height + 5;
+                        let aheadOnPlatform = false;
+                        
+                        for (const platform of platforms) {
+                            if (aheadX >= platform.x && 
+                                aheadX <= platform.x + platform.width &&
+                                aheadY >= platform.y &&
+                                aheadY <= platform.y + 10) {
+                                aheadOnPlatform = true;
+                            }
+                        }
+                        
+                        // Turn around at edges or walls
+                        if (!aheadOnPlatform || hitWall) {
+                            enemy.direction *= -1;
+                        }
+                        
+                        break;
+                    
+                    case 'flyer':
+                        // Flying enemy with sine wave pattern
+                        enemy.x += enemy.speed * enemy.direction * dt;
+                        
+                        // Calculate y position based on sine wave
+                        const time = Date.now() / 1000; // Time in seconds
+                        enemy.yOffset = Math.sin(time * enemy.frequency) * enemy.amplitude;
+                        
+                        // Bounce off screen edges
+                        if (enemy.x <= 0 || enemy.x + enemy.width >= GAME_WIDTH) {
+                            enemy.direction *= -1;
+                        }
+                        
+                        break;
+                        
+                    case 'jumper':
+                        // Apply gravity
+                        enemy.dy += GRAVITY * dt;
+                        enemy.y += enemy.dy * dt;
+                        
+                        // Horizontal movement
+                        enemy.x += enemy.speed * enemy.direction * dt;
+                        
+                        // Check platform collisions
+                        enemy.onGround = false;
+                        for (const platform of platforms) {
+                            if (enemy.x + enemy.width > platform.x &&
+                                enemy.x < platform.x + platform.width &&
+                                enemy.y + enemy.height > platform.y &&
+                                enemy.y + enemy.height < platform.y + platform.height) {
+                                enemy.y = platform.y - enemy.height;
+                                enemy.dy = 0;
+                                enemy.onGround = true;
+                            }
+                        }
+                        
+                        // Screen boundaries
+                        if (enemy.x <= 0 || enemy.x + enemy.width >= GAME_WIDTH) {
+                            enemy.direction *= -1;
+                        }
+                        
+                        // Jump logic
+                        if (enemy.onGround) {
+                            enemy.jumpCooldown -= dt;
+                            if (enemy.jumpCooldown <= 0) {
+                                enemy.dy = -enemy.jumpPower;
+                                enemy.jumpCooldown = enemy.jumpInterval;
+                                enemy.onGround = false;
+                            }
+                        }
+                        
+                        break;
+                        
+                    case 'thrower':
+                        // Projectile throwing enemy
+                        enemy.attackCooldown -= dt;
+                        
+                        // Face player
+                        if (player.x < enemy.x) {
+                            enemy.direction = -1;
+                        } else {
+                            enemy.direction = 1;
+                        }
+                        
+                        // Attack if cooldown expired and player is in range
+                        const distanceToPlayer = Math.abs(player.x - enemy.x);
+                        if (enemy.attackCooldown <= 0 && distanceToPlayer < 300) {
+                            // Calculate angle to player
+                            const dx = player.x + player.width/2 - (enemy.x + enemy.width/2);
+                            const dy = player.y + player.height/2 - (enemy.y + enemy.height/2);
+                            const angle = Math.atan2(dy, dx);
+                            
+                            // Create projectile
+                            projectiles.push({
+                                x: enemy.x + enemy.width/2,
+                                y: enemy.y + enemy.height/3,
+                                width: 15,
+                                height: 15,
+                                dx: Math.cos(angle) * 150,
+                                dy: Math.sin(angle) * 150,
+                                damage: 1,
+                                lifetime: 0,
+                                type: 'enemy_shuriken',
+                                fromPlayer: false
+                            });
+                            
+                            enemy.attackCooldown = enemy.attackInterval;
+                        }
+                        
+                        break;
+                }
+                
+                // Check if enemy is dead
+                if (enemy.health <= 0) {
+                    // Add death animation/particles
+                    createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                    
+                    // Add score
+                    player.score += 100;
+                    
+                    // Remove enemy
+                    enemies.splice(i, 1);
+                }
+            }
+        }
+        
+        // Function to create explosion particles
+        function createExplosion(x, y) {
+            // Create particles
+            for (let i = 0; i < 15; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 50 + Math.random() * 50;
+                particles.push({
+                    x: x,
+                    y: y,
+                    dx: Math.cos(angle) * speed,
+                    dy: Math.sin(angle) * speed,
+                    size: 3 + Math.random() * 4,
+                    color: COLORS.white,
+                    lifetime: 0,
+                    maxLifetime: 0.5 + Math.random() * 0.5
+                });
+            }
+        }
+        
+        // Function to check collisions
+        function checkCollisions() {
+            // Player projectiles against enemies
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const proj = projectiles[i];
+                
+                // Only check player projectiles
+                if (proj.fromPlayer) {
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        const enemy = enemies[j];
+                        
+                        // Simple collision detection
+                        if (proj.x < enemy.x + enemy.width &&
+                            proj.x + proj.width > enemy.x &&
+                            proj.y < enemy.y + enemy.height &&
+                            proj.y + proj.height > enemy.y) {
+                            
+                            // Damage enemy
+                            enemy.health--;
+                            
+                            // Create small hit effect
+                            for (let k = 0; k < 5; k++) {
+                                particles.push({
+                                    x: proj.x,
+                                    y: proj.y,
+                                    dx: (Math.random() - 0.5) * 30,
+                                    dy: (Math.random() - 0.5) * 30,
+                                    size: 2 + Math.random() * 3,
+                                    color: COLORS.white,
+                                    lifetime: 0,
+                                    maxLifetime: 0.3
+                                });
+                            }
+                            
+                            // Remove projectile
+                            projectiles.splice(i, 1);
+                            break;
+                        }
+                    }
+                } else {
+                    // Enemy projectiles against player
+                    if (proj.x < player.x + player.width &&
+                        proj.x + proj.width > player.x &&
+                        proj.y < player.y + player.height &&
+                        proj.y + proj.height > player.y &&
+                        player.invulnerable <= 0) {
+                        
+                        // Damage player
+                        player.health--;
+                        player.invulnerable = 1.5; // 1.5 second invulnerability
+                        
+                        // Knockback effect
+                        player.dx = proj.dx > 0 ? 150 : -150;
+                        player.dy = -200;
+                        
+                        // Create hit effect
+                        for (let k = 0; k < 10; k++) {
+                            particles.push({
+                                x: proj.x,
+                                y: proj.y,
+                                dx: (Math.random() - 0.5) * 50,
+                                dy: (Math.random() - 0.5) * 50 - 20,
+                                size: 2 + Math.random() * 3,
+                                color: COLORS.white,
+                                lifetime: 0,
+                                maxLifetime: 0.5
+                            });
+                        }
+                        
+                        // Remove projectile
+                        projectiles.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            
+            // Player collision with enemies
+            if (player.invulnerable <= 0) {
+                for (const enemy of enemies) {
+                    if (player.x < enemy.x + enemy.width &&
+                        player.x + player.width > enemy.x &&
+                        player.y < enemy.y + enemy.height &&
+                        player.y + player.height > enemy.y) {
+                        
+                        // Damage player
+                        player.health--;
+                        player.invulnerable = 1.5; // 1.5 second invulnerability
+                        
+                        // Knockback effect
+                        const knockbackDir = player.x < enemy.x ? -1 : 1;
+                        player.dx = knockbackDir * 150;
+                        player.dy = -200;
+                        
+                        // Create hit effect
+                        for (let k = 0; k < 10; k++) {
+                            particles.push({
+                                x: player.x + player.width/2,
+                                y: player.y + player.height/2,
+                                dx: (Math.random() - 0.5) * 50,
+                                dy: (Math.random() - 0.5) * 50 - 20,
+                                size: 2 + Math.random() * 3,
+                                color: COLORS.white,
+                                lifetime: 0,
+                                maxLifetime: 0.5
+                            });
+                        }
+                        
+                        break;
+                    }
+                }
             }
         }
     </script>
