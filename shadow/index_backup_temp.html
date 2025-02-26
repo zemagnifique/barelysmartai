@@ -1607,7 +1607,7 @@
         function drawProjectile(projectile) {
             if (projectile.fromPlayer) {
                 // Player projectile (yellow star-shaped shuriken)
-                ctx.fillStyle = '#FFDD00'; // Bright yellow
+                ctx.fillStyle = '#FFFF00'; // Bright yellow
                 
                 const size = projectile.width;
                 const x = projectile.x;
@@ -1642,7 +1642,7 @@
                 ctx.fill();
                 
                 // Add a small center circle
-                ctx.fillStyle = '#FF8800'; // Darker orange center
+                ctx.fillStyle = '#FFD700'; // Gold center
                 ctx.beginPath();
                 ctx.arc(0, 0, size/6, 0, Math.PI * 2);
                 ctx.fill();
@@ -2176,438 +2176,180 @@
                     break;
                 
                 case 'boss':
-                    // Draw boss with damage flash effect
-                    ctx.fillStyle = enemy.flashTimer > 0 && flickering ? COLORS.white : COLORS.darkGray;
-                    
-                    // Body
+                    // Base shadow effect for depth
+                    ctx.fillStyle = '#000000';
                     ctx.fillRect(
-                        enemy.x, 
-                        enemy.y, 
+                        enemy.x + 5, 
+                        enemy.y + 5, 
                         enemy.width, 
                         enemy.height
                     );
                     
-                    // Head with more details - helmet and face
-                    ctx.fillStyle = COLORS.white;
+                    // Draw boss with damage flash effect
+                    const baseColor = enemy.flashTimer > 0 && flickering ? COLORS.white : '#444466'; // More blue-gray color
+                    ctx.fillStyle = baseColor;
                     
-                    // Base head shape
-                    ctx.fillRect(
-                        enemy.x + enemy.width/4, 
-                        enemy.y, 
-                        enemy.width/2, 
-                        enemy.height/4
-                    );
-                    
-                    // Helmet top (angular shape)
-                    ctx.fillStyle = '#222222';
+                    // Main body - slightly narrower at the waist for better shape
                     ctx.beginPath();
-                    ctx.moveTo(enemy.x + enemy.width/4, enemy.y);
-                    ctx.lineTo(enemy.x + enemy.width*3/4, enemy.y);
-                    ctx.lineTo(enemy.x + enemy.width*2/3, enemy.y - enemy.height/10);
-                    ctx.lineTo(enemy.x + enemy.width/3, enemy.y - enemy.height/10);
+                    ctx.moveTo(enemy.x, enemy.y + enemy.height/4); // Top left after head
+                    ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height/4); // Top right after head
+                    ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height); // Bottom right
+                    ctx.lineTo(enemy.x, enemy.y + enemy.height); // Bottom left
                     ctx.closePath();
                     ctx.fill();
                     
-                    // Helmet side plates
+                    // Head with helmet shape
+                    ctx.fillStyle = '#555577'; // Helmet color - metallic blue-gray
+                    ctx.beginPath();
+                    ctx.moveTo(enemy.x + enemy.width/5, enemy.y + enemy.height/4); // Bottom left
+                    ctx.lineTo(enemy.x + enemy.width*4/5, enemy.y + enemy.height/4); // Bottom right
+                    ctx.lineTo(enemy.x + enemy.width*4/5, enemy.y + enemy.height/20); // Top right corner
+                    ctx.lineTo(enemy.x + enemy.width/2, enemy.y - enemy.height/15); // Top point (helmet peak)
+                    ctx.lineTo(enemy.x + enemy.width/5, enemy.y + enemy.height/20); // Top left corner
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Face mask
+                    ctx.fillStyle = '#333344';
                     ctx.fillRect(
-                        enemy.x + enemy.width/4 - enemy.width/16, 
-                        enemy.y, 
-                        enemy.width/16, 
+                        enemy.x + enemy.width/4, 
+                        enemy.y + enemy.height/20, 
+                        enemy.width/2, 
                         enemy.height/5
                     );
                     
-                    ctx.fillRect(
-                        enemy.x + enemy.width*3/4, 
-                        enemy.y, 
-                        enemy.width/16, 
-                        enemy.height/5
+                    // Glowing eyes
+                    ctx.fillStyle = enemy.isInvulnerable ? COLORS.white : COLORS.black;
+                    
+                    // Glowing eyes - more sinister with gradient
+                    const eyeColor = enemy.isInvulnerable ? '#FFFFFF' : '#FF3300';
+                    const eyeGlow = ctx.createRadialGradient(
+                        enemy.x + enemy.width/3, enemy.y + enemy.height/10,
+                        0,
+                        enemy.x + enemy.width/3, enemy.y + enemy.height/10,
+                        enemy.width/8
                     );
+                    eyeGlow.addColorStop(0, eyeColor);
+                    eyeGlow.addColorStop(1, 'rgba(255, 0, 0, 0)');
                     
-                    // Face mask (covers lower part of face)
-                    ctx.fillStyle = '#444444';
-                    ctx.fillRect(
-                        enemy.x + enemy.width/4, 
-                        enemy.y + enemy.height/8,
-                        enemy.width/2, 
-                        enemy.height/8
-                    );
-                    
-                    // Breathing vents on mask
-                    ctx.fillStyle = '#111111';
-                    // Left vent
-                    ctx.fillRect(
-                        enemy.x + enemy.width*2/5, 
-                        enemy.y + enemy.height/6,
-                        enemy.width/15, 
-                        enemy.height/20
-                    );
-                    
-                    // Right vent
-                    ctx.fillRect(
-                        enemy.x + enemy.width*3/5 - enemy.width/15, 
-                        enemy.y + enemy.height/6,
-                        enemy.width/15, 
-                        enemy.height/20
-                    );
-                    
-                    // Glowing eyes - more intimidating
-                    if (enemy.isInvulnerable) {
-                        // White glowing eyes when invulnerable - with glow effect
-                        ctx.fillStyle = COLORS.white;
-                        
-                        // Outer glow
-                        ctx.globalAlpha = 0.5;
-                        ctx.fillRect(
-                            enemy.x + enemy.width/3 - enemy.width/16, 
-                            enemy.y + enemy.height/12 - enemy.height/32,
-                            enemy.width/8 + enemy.width/8,
-                            enemy.height/16 + enemy.height/16
-                        );
-                        
-                        ctx.fillRect(
-                            enemy.x + enemy.width*2/3 - enemy.width/8 - enemy.width/16, 
-                            enemy.y + enemy.height/12 - enemy.height/32,
-                            enemy.width/8 + enemy.width/8,
-                            enemy.height/16 + enemy.height/16
-                        );
-                        
-                        ctx.globalAlpha = 1.0;
-                    }
-                    
-                    // Eye shape is now slanted/angular for a more menacing look
-                    ctx.fillStyle = enemy.isInvulnerable ? COLORS.white : '#FF0000';
-                    
-                    // Left eye - angular shape
+                    // Left eye glow effect
+                    ctx.fillStyle = eyeGlow;
                     ctx.beginPath();
-                    ctx.moveTo(enemy.x + enemy.width/3, enemy.y + enemy.height/12);
-                    ctx.lineTo(enemy.x + enemy.width/3 + enemy.width/8, enemy.y + enemy.height/12);
-                    ctx.lineTo(enemy.x + enemy.width/3 + enemy.width/8 + enemy.width/20, enemy.y + enemy.height/12 + enemy.height/16);
-                    ctx.lineTo(enemy.x + enemy.width/3 - enemy.width/20, enemy.y + enemy.height/12 + enemy.height/16);
+                    ctx.arc(
+                        enemy.x + enemy.width/3,
+                        enemy.y + enemy.height/10,
+                        enemy.width/8,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                    
+                    // Left eye
+                    ctx.fillStyle = eyeColor;
+                    ctx.beginPath();
+                    ctx.moveTo(enemy.x + enemy.width/3 - enemy.width/16, enemy.y + enemy.height/12);
+                    ctx.lineTo(enemy.x + enemy.width/3 + enemy.width/16, enemy.y + enemy.height/12);
+                    ctx.lineTo(enemy.x + enemy.width/3, enemy.y + enemy.height/8);
                     ctx.closePath();
                     ctx.fill();
                     
-                    // Right eye - angular shape
+                    // Right eye glow effect
+                    const rightEyeGlow = ctx.createRadialGradient(
+                        enemy.x + enemy.width*2/3, enemy.y + enemy.height/10,
+                        0,
+                        enemy.x + enemy.width*2/3, enemy.y + enemy.height/10,
+                        enemy.width/8
+                    );
+                    rightEyeGlow.addColorStop(0, eyeColor);
+                    rightEyeGlow.addColorStop(1, 'rgba(255, 0, 0, 0)');
+                    
+                    ctx.fillStyle = rightEyeGlow;
                     ctx.beginPath();
-                    ctx.moveTo(enemy.x + enemy.width*2/3 - enemy.width/8, enemy.y + enemy.height/12);
-                    ctx.lineTo(enemy.x + enemy.width*2/3, enemy.y + enemy.height/12);
-                    ctx.lineTo(enemy.x + enemy.width*2/3 + enemy.width/20, enemy.y + enemy.height/12 + enemy.height/16);
-                    ctx.lineTo(enemy.x + enemy.width*2/3 - enemy.width/8 - enemy.width/20, enemy.y + enemy.height/12 + enemy.height/16);
-                    ctx.closePath();
+                    ctx.arc(
+                        enemy.x + enemy.width*2/3,
+                        enemy.y + enemy.height/10,
+                        enemy.width/8,
+                        0, Math.PI * 2
+                    );
                     ctx.fill();
                     
-                    // When not invulnerable, add pupils for more detail
-                    if (!enemy.isInvulnerable) {
-                        ctx.fillStyle = '#000000';
-                        // Left pupil
-                        ctx.beginPath();
-                        ctx.arc(
-                            enemy.x + enemy.width/3 + enemy.width/16,
-                            enemy.y + enemy.height/12 + enemy.height/32,
-                            enemy.width/30,
-                            0, Math.PI * 2
-                        );
-                        ctx.fill();
-                        
-                        // Right pupil
-                        ctx.beginPath();
-                        ctx.arc(
-                            enemy.x + enemy.width*2/3 - enemy.width/16,
-                            enemy.y + enemy.height/12 + enemy.height/32,
-                            enemy.width/30,
-                            0, Math.PI * 2
-                        );
-                        ctx.fill();
-                    }
+                    // Right eye
+                    ctx.fillStyle = eyeColor;
+                    ctx.beginPath();
+                    ctx.moveTo(enemy.x + enemy.width*2/3 - enemy.width/16, enemy.y + enemy.height/12);
+                    ctx.lineTo(enemy.x + enemy.width*2/3 + enemy.width/16, enemy.y + enemy.height/12);
+                    ctx.lineTo(enemy.x + enemy.width*2/3, enemy.y + enemy.height/8);
+                    ctx.closePath();
+                    ctx.fill();
                     
                     // Armor plates
                     ctx.fillStyle = COLORS.black;
                     
-                    // Shoulder armor - left
-                    ctx.beginPath();
-                    ctx.moveTo(enemy.x, enemy.y + enemy.height/4);
-                    ctx.lineTo(enemy.x - enemy.width/8, enemy.y + enemy.height/4);
-                    ctx.lineTo(enemy.x - enemy.width/10, enemy.y + enemy.height/2);
-                    ctx.lineTo(enemy.x, enemy.y + enemy.height/2);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Shoulder armor - right
-                    ctx.beginPath();
-                    ctx.moveTo(enemy.x + enemy.width, enemy.y + enemy.height/4);
-                    ctx.lineTo(enemy.x + enemy.width + enemy.width/8, enemy.y + enemy.height/4);
-                    ctx.lineTo(enemy.x + enemy.width + enemy.width/10, enemy.y + enemy.height/2);
-                    ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height/2);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Chest plate - center ridge
-                    ctx.fillStyle = '#333333';
+                    // Shoulder plates
                     ctx.fillRect(
-                        enemy.x + enemy.width/2 - enemy.width/16,
+                        enemy.x - enemy.width/10, 
                         enemy.y + enemy.height/4,
-                        enemy.width/8,
-                        enemy.height*3/5
-                    );
-                    
-                    // Add chest armor details - left side plate
-                    ctx.fillStyle = '#444444';
-                    ctx.beginPath();
-                    ctx.moveTo(enemy.x + enemy.width/4, enemy.y + enemy.height/4);
-                    ctx.lineTo(enemy.x + enemy.width/2 - enemy.width/16, enemy.y + enemy.height/4);
-                    ctx.lineTo(enemy.x + enemy.width/2 - enemy.width/16, enemy.y + enemy.height*3/4);
-                    ctx.lineTo(enemy.x + enemy.width/4, enemy.y + enemy.height*2/3);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Add chest armor details - right side plate
-                    ctx.beginPath();
-                    ctx.moveTo(enemy.x + enemy.width/2 + enemy.width/16, enemy.y + enemy.height/4);
-                    ctx.lineTo(enemy.x + enemy.width*3/4, enemy.y + enemy.height/4);
-                    ctx.lineTo(enemy.x + enemy.width*3/4, enemy.y + enemy.height*2/3);
-                    ctx.lineTo(enemy.x + enemy.width/2 + enemy.width/16, enemy.y + enemy.height*3/4);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Belt
-                    ctx.fillStyle = '#222222';
-                    ctx.fillRect(
-                        enemy.x,
-                        enemy.y + enemy.height*3/4,
-                        enemy.width,
-                        enemy.height/12
-                    );
-                    
-                    // Belt buckle
-                    ctx.fillStyle = '#555555';
-                    ctx.fillRect(
-                        enemy.x + enemy.width/2 - enemy.width/10,
-                        enemy.y + enemy.height*3/4,
                         enemy.width/5,
-                        enemy.height/12
+                        enemy.height/6
                     );
                     
-                    // Leg armor patterns
-                    ctx.fillStyle = '#333333';
-                    // Left leg detail
-                    ctx.beginPath();
-                    ctx.moveTo(enemy.x + enemy.width/4, enemy.y + enemy.height*5/6);
-                    ctx.lineTo(enemy.x + enemy.width/2 - enemy.width/10, enemy.y + enemy.height*5/6);
-                    ctx.lineTo(enemy.x + enemy.width/2 - enemy.width/10, enemy.y + enemy.height);
-                    ctx.lineTo(enemy.x + enemy.width/4, enemy.y + enemy.height);
-                    ctx.closePath();
-                    ctx.fill();
+                    ctx.fillRect(
+                        enemy.x + enemy.width - enemy.width/10, 
+                        enemy.y + enemy.height/4,
+                        enemy.width/5,
+                        enemy.height/6
+                    );
                     
-                    // Right leg detail
-                    ctx.beginPath();
-                    ctx.moveTo(enemy.x + enemy.width/2 + enemy.width/10, enemy.y + enemy.height*5/6);
-                    ctx.lineTo(enemy.x + enemy.width*3/4, enemy.y + enemy.height*5/6);
-                    ctx.lineTo(enemy.x + enemy.width*3/4, enemy.y + enemy.height);
-                    ctx.lineTo(enemy.x + enemy.width/2 + enemy.width/10, enemy.y + enemy.height);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Phase specific features
-                    if (enemy.attackPhase === 'projectile') {
-                        // Arms extended
-                        ctx.fillStyle = COLORS.darkGray;
+                    // Arms based on attack phase
+                    if (enemy.attackPhase === 2) { // Projectile phase
+                        // Arms extended - armored gauntlets
+                        ctx.fillStyle = '#555577';
                         
                         // Left arm
                         ctx.fillRect(
-                            enemy.x - enemy.width/2, 
+                            enemy.x - enemy.width/5, 
                             enemy.y + enemy.height/3,
-                            enemy.width/2,
-                            enemy.height/6
+                            enemy.width/5,
+                            enemy.height/10
                         );
+                        
+                        // Left gauntlet
+                        ctx.beginPath();
+                        ctx.arc(
+                            enemy.x - enemy.width/5,
+                            enemy.y + enemy.height/3 + enemy.height/20,
+                            enemy.width/8,
+                            0, Math.PI * 2
+                        );
+                        ctx.fill();
                         
                         // Right arm
                         ctx.fillRect(
-                            enemy.x + enemy.width, 
+                            enemy.x + enemy.width,
                             enemy.y + enemy.height/3,
-                            enemy.width/2,
-                            enemy.height/6
+                            enemy.width/5,
+                            enemy.height/10
                         );
                         
-                        // Arm armor plates - left
-                        ctx.fillStyle = '#222222';
-                        ctx.fillRect(
-                            enemy.x - enemy.width/2, 
-                            enemy.y + enemy.height/3,
-                            enemy.width/4,
-                            enemy.height/6
-                        );
-                        
-                        // Arm armor plates - right
-                        ctx.fillRect(
-                            enemy.x + enemy.width + enemy.width/4, 
-                            enemy.y + enemy.height/3,
-                            enemy.width/4,
-                            enemy.height/6
-                        );
-                        
-                        // Energy gathering in hands
-                        const energyPulse = 0.5 + Math.sin(gameTime * 10) * 0.5; // Pulsing effect
-                        
-                        // Left hand energy orb
-                        ctx.fillStyle = enemy.isInvulnerable ? COLORS.white : `rgba(255, 0, 0, ${energyPulse})`;
+                        // Right gauntlet
                         ctx.beginPath();
                         ctx.arc(
-                            enemy.x - enemy.width/2, 
-                            enemy.y + enemy.height/3 + enemy.height/12,
-                            enemy.width/8 * (0.8 + energyPulse * 0.4),
+                            enemy.x + enemy.width + enemy.width/5,
+                            enemy.y + enemy.height/3 + enemy.height/20,
+                            enemy.width/8,
                             0, Math.PI * 2
                         );
                         ctx.fill();
-                        
-                        // Energy glow effect
-                        ctx.globalAlpha = 0.3;
+                    } else {
+                        // Simple dot instead of droplet shape
                         ctx.beginPath();
                         ctx.arc(
-                            enemy.x - enemy.width/2, 
-                            enemy.y + enemy.height/3 + enemy.height/12,
-                            enemy.width/6 * (0.8 + energyPulse * 0.6),
+                            particle.x,
+                            particle.y,
+                            particle.size * 0.7, // Smaller size
                             0, Math.PI * 2
                         );
                         ctx.fill();
-                        ctx.globalAlpha = 1.0;
-                        
-                        // Right hand energy orb
-                        ctx.fillStyle = enemy.isInvulnerable ? COLORS.white : `rgba(255, 0, 0, ${energyPulse})`;
-                        ctx.beginPath();
-                        ctx.arc(
-                            enemy.x + enemy.width + enemy.width/2, 
-                            enemy.y + enemy.height/3 + enemy.height/12,
-                            enemy.width/8 * (0.8 + energyPulse * 0.4),
-                            0, Math.PI * 2
-                        );
-                        ctx.fill();
-                        
-                        // Energy glow effect
-                        ctx.globalAlpha = 0.3;
-                        ctx.beginPath();
-                        ctx.arc(
-                            enemy.x + enemy.width + enemy.width/2, 
-                            enemy.y + enemy.height/3 + enemy.height/12,
-                            enemy.width/6 * (0.8 + energyPulse * 0.6),
-                            0, Math.PI * 2
-                        );
-                        ctx.fill();
-                        ctx.globalAlpha = 1.0;
-                        
-                        // Energy particles around hands
-                        for (let i = 0; i < 3; i++) {
-                            const angle = Math.random() * Math.PI * 2;
-                            const distance = enemy.width/10 * (1 + energyPulse);
-                            const particleSize = enemy.width/30 * (0.5 + Math.random() * 0.5);
-                            
-                            // Left hand particles
-                            ctx.fillStyle = enemy.isInvulnerable ? COLORS.white : `rgba(255, ${Math.floor(Math.random() * 100)}, 0, ${0.5 + Math.random() * 0.5})`;
-                            ctx.beginPath();
-                            ctx.arc(
-                                enemy.x - enemy.width/2 + Math.cos(angle) * distance, 
-                                enemy.y + enemy.height/3 + enemy.height/12 + Math.sin(angle) * distance,
-                                particleSize,
-                                0, Math.PI * 2
-                            );
-                            ctx.fill();
-                            
-                            // Right hand particles
-                            ctx.beginPath();
-                            ctx.arc(
-                                enemy.x + enemy.width + enemy.width/2 + Math.cos(angle + Math.PI) * distance, 
-                                enemy.y + enemy.height/3 + enemy.height/12 + Math.sin(angle + Math.PI) * distance,
-                                particleSize,
-                                0, Math.PI * 2
-                            );
-                            ctx.fill();
-                        }
-                        
-                        // Energy beam connecting both hands (charging effect)
-                        if (enemy.attackTimer > 1.5) {
-                            const beamOpacity = Math.min(1, (enemy.attackTimer - 1.5) * 2);
-                            const beamWidth = enemy.height/20 * beamOpacity;
-                            
-                            // Create gradient for beam
-                            const gradient = ctx.createLinearGradient(
-                                enemy.x - enemy.width/2,
-                                enemy.y + enemy.height/3 + enemy.height/12,
-                                enemy.x + enemy.width + enemy.width/2,
-                                enemy.y + enemy.height/3 + enemy.height/12
-                            );
-                            
-                            if (enemy.isInvulnerable) {
-                                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
-                                gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.8)');
-                                gradient.addColorStop(1, 'rgba(255, 255, 255, 0.2)');
-                            } else {
-                                gradient.addColorStop(0, 'rgba(255, 0, 0, 0.2)');
-                                gradient.addColorStop(0.5, 'rgba(255, 100, 0, 0.8)');
-                                gradient.addColorStop(1, 'rgba(255, 0, 0, 0.2)');
-                            }
-                            
-                            ctx.fillStyle = gradient;
-                            ctx.fillRect(
-                                enemy.x - enemy.width/2,
-                                enemy.y + enemy.height/3 + enemy.height/12 - beamWidth/2,
-                                enemy.width * 2 + enemy.width,
-                                beamWidth
-                            );
-                        }
                     }
-                    
-                    // Draw health bar
-                    ctx.fillStyle = COLORS.black;
-                    ctx.fillRect(
-                        enemy.x, 
-                        enemy.y - 20,
-                        enemy.width,
-                        10
-                    );
-                    
-                    ctx.fillStyle = COLORS.white;
-                    ctx.fillRect(
-                        enemy.x, 
-                        enemy.y - 20,
-                        (enemy.health / enemy.maxHealth) * enemy.width,
-                        10
-                    );
-                    break;
-            }
-        }
-        
-        // Function to draw particle
-        function drawParticle(particle) {
-            // Set opacity based on lifetime
-            ctx.globalAlpha = 1 - (particle.lifetime / particle.maxLifetime);
-            
-            if (particle.isBlood) {
-                // Blood particle rendering - simplified
-                ctx.fillStyle = particle.color;
-                
-                if (particle.isPool) {
-                    // Simplified blood pool (just a circle)
-                    ctx.beginPath();
-                    ctx.arc(
-                        particle.x,
-                        particle.y,
-                        particle.size * 0.8, // Smaller size
-                        0, Math.PI * 2
-                    );
-                    ctx.fill();
-                    
-                    // Slow down pool particles
-                    particle.dx *= 0.95;
-                    particle.dy *= 0.95;
-                } else {
-                    // Simple dot instead of droplet shape
-                    ctx.beginPath();
-                    ctx.arc(
-                        particle.x,
-                        particle.y,
-                        particle.size * 0.7, // Smaller size
-                        0, Math.PI * 2
-                    );
-                    ctx.fill();
-                }
             } else {
                 // Regular particle rendering
                 ctx.fillStyle = particle.color;
