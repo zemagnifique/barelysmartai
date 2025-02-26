@@ -279,7 +279,8 @@
                 right: false,
                 jump: false,
                 attack: false,
-                space: false
+                space: false,
+                jumpPressed: false // Track if jump was just pressed
             };
             
             // Track active touches by identifier
@@ -293,13 +294,19 @@
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    // Store each touch by identifier
-                    for (let i = 0; i < e.changedTouches.length; i++) {
-                        const touch = e.changedTouches[i];
-                        activeTouches[touch.identifier] = { element: button, control: controlKey };
+                    // Special handling for jump button to prevent continuous jumping
+                    if (controlKey === 'jump') {
+                        if (!touchControls.jumpPressed) {
+                            touchControls.jumpPressed = true;
+                            touchControls.jump = true;
+                            // Reset jump after a short delay
+                            setTimeout(() => {
+                                touchControls.jump = false;
+                            }, 100);
+                        }
+                    } else {
+                        touchControls[controlKey] = true;
                     }
-                    
-                    touchControls[controlKey] = true;
                     button.style.backgroundColor = '#8bac8b';
                 });
                 
@@ -307,56 +314,22 @@
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    // Remove ended touches
-                    for (let i = 0; i < e.changedTouches.length; i++) {
-                        const touch = e.changedTouches[i];
-                        if (activeTouches[touch.identifier]) {
-                            delete activeTouches[touch.identifier];
-                        }
+                    touchControls[controlKey] = false;
+                    if (controlKey === 'jump') {
+                        touchControls.jumpPressed = false;
                     }
-                    
-                    // Check if any other touches are still active on this button
-                    let stillActive = false;
-                    for (const id in activeTouches) {
-                        if (activeTouches[id].element === button) {
-                            stillActive = true;
-                            break;
-                        }
-                    }
-                    
-                    // Only deactivate if no touches remain on this button
-                    if (!stillActive) {
-                        touchControls[controlKey] = false;
-                        button.style.backgroundColor = '#306630';
-                    }
+                    button.style.backgroundColor = '#306630';
                 });
                 
                 button.addEventListener('touchcancel', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    // Remove cancelled touches
-                    for (let i = 0; i < e.changedTouches.length; i++) {
-                        const touch = e.changedTouches[i];
-                        if (activeTouches[touch.identifier]) {
-                            delete activeTouches[touch.identifier];
-                        }
+                    touchControls[controlKey] = false;
+                    if (controlKey === 'jump') {
+                        touchControls.jumpPressed = false;
                     }
-                    
-                    // Check if any other touches are still active on this button
-                    let stillActive = false;
-                    for (const id in activeTouches) {
-                        if (activeTouches[id].element === button) {
-                            stillActive = true;
-                            break;
-                        }
-                    }
-                    
-                    // Only deactivate if no touches remain on this button
-                    if (!stillActive) {
-                        touchControls[controlKey] = false;
-                        button.style.backgroundColor = '#306630';
-                    }
+                    button.style.backgroundColor = '#306630';
                 });
                 
                 button.addEventListener('touchmove', function(e) {
@@ -364,34 +337,16 @@
                     e.stopPropagation();
                     
                     // Check if touch has moved outside the button
-                    for (let i = 0; i < e.changedTouches.length; i++) {
-                        const touch = e.changedTouches[i];
-                        const rect = button.getBoundingClientRect();
-                        
-                        // If touch has moved outside the button
-                        if (touch.clientX < rect.left || touch.clientX > rect.right ||
-                            touch.clientY < rect.top || touch.clientY > rect.bottom) {
-                            
-                            // Remove this touch
-                            if (activeTouches[touch.identifier]) {
-                                delete activeTouches[touch.identifier];
-                            }
-                            
-                            // Check if any other touches are still active on this button
-                            let stillActive = false;
-                            for (const id in activeTouches) {
-                                if (activeTouches[id].element === button) {
-                                    stillActive = true;
-                                    break;
-                                }
-                            }
-                            
-                            // Only deactivate if no touches remain on this button
-                            if (!stillActive) {
-                                touchControls[controlKey] = false;
-                                button.style.backgroundColor = '#306630';
-                            }
+                    const touch = e.touches[0];
+                    const rect = button.getBoundingClientRect();
+                    
+                    if (touch.clientX < rect.left || touch.clientX > rect.right ||
+                        touch.clientY < rect.top || touch.clientY > rect.bottom) {
+                        touchControls[controlKey] = false;
+                        if (controlKey === 'jump') {
+                            touchControls.jumpPressed = false;
                         }
+                        button.style.backgroundColor = '#306630';
                     }
                 });
             }
@@ -475,13 +430,21 @@
             
             // Handle touch controls in game loop
             const gameLoop = function() {
-                // Map touch controls to key presses
+                // Map touch controls to key presses with special handling for jump
                 if (window.keys) {
-                    keys.ArrowLeft = keys.ArrowLeft || touchControls.left;
-                    keys.ArrowRight = keys.ArrowRight || touchControls.right;
-                    keys.z = keys.z || touchControls.jump;
-                    keys.x = keys.x || touchControls.attack;
-                    keys[' '] = keys[' '] || touchControls.space;
+                    // Movement controls
+                    keys.ArrowLeft = touchControls.left;
+                    keys.ArrowRight = touchControls.right;
+                    keys.x = touchControls.attack;
+                    keys[' '] = touchControls.space;
+                    
+                    // Special handling for jump to prevent continuous jumping
+                    if (touchControls.jump) {
+                        keys.z = true;
+                        touchControls.jump = false; // Reset immediately after setting
+                    } else if (!touchControls.jumpPressed) {
+                        keys.z = false;
+                    }
                 }
                 
                 // Update space button visibility
