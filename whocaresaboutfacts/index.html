@@ -15,27 +15,17 @@
     }
 
     header {
-      position: relative;
+      display: flex;
+      align-items: center;
       background-color: #2a2a2a;
       color: #fff;
       padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .header-left {
-      font-size: 0.85rem;
-      opacity: 0.7;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
       gap: 15px;
+      justify-content: flex-start; /* Ensure logo + title are left-aligned */
     }
 
-    .logo {
+    .logo img {
+      display: block;
       width: 50px;
       height: 50px;
     }
@@ -129,46 +119,11 @@
 </head>
 <body>
   <header>
-    <div class="header-left">
-      Wed Feb 26 2025
+    <!-- PNG Logo at top left -->
+    <div class="logo">
+      <img src="face.png" alt="Face Logo">
     </div>
-    <div class="header-right">
-      <div class="logo">
-        <!-- Updated SVG logo: Face with a hand showing finger details -->
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <!-- Face -->
-          <circle cx="50" cy="50" r="40" fill="#FFEB3B" stroke="#333" stroke-width="3"/>
-          <!-- Hand with fingers (positioned on the left side) -->
-          <path d="
-            M10,60 
-            C10,48 22,42 28,42 
-            L30,42 
-            C32,42 34,44 34,46 
-            L34,52 
-            C34,54 32,56 30,56 
-            L28,56 
-            C26,56 24,58 24,60 
-            L24,70 
-            C24,72 26,74 28,74 
-            L32,74 
-            C34,74 36,72 36,70 
-            L36,60 
-            C36,58 34,56 32,56 
-            L30,56 
-            C28,56 26,54 26,52 
-            L26,46 
-            C26,44 28,42 30,42 
-            L32,42 
-            C38,42 50,48 50,60 
-            L10,60 
-            Z" 
-            fill="#FFEB3B" stroke="#333" stroke-width="3"/>
-          <!-- Visible eye (on the right side) -->
-          <circle cx="65" cy="40" r="5" fill="#333"/>
-        </svg>
-      </div>
-      <h1>Who Cares About Facts</h1>
-    </div>
+    <h1>Who Cares About Facts</h1>
   </header>
 
   <main>
@@ -202,24 +157,25 @@
   <!-- Include D3.js from CDN -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
-    // Default AI performance data with the given list of models and sample values
-    const defaultData = [
-      { name: "o3", value: 90 },
-      { name: "Claude 3.7 Sonnet", value: 92 },
-      { name: "Grok-3", value: 85 },
-      { name: "Grok-3 Mini", value: 80 },
-      { name: "o3-mini", value: 78 },
-      { name: "o1-pro", value: 88 },
-      { name: "o1", value: 84 },
-      { name: "Gemini 2.0 Flash T…", value: 91 },
+    // Default AI performance data, sorted from largest to smallest
+    let defaultData = [
+      { name: "Grok-3", value: 95 },
+      { name: "Grok-3 Mini", value: 94 },
+      { name: "Claude 3.7 Sonnet", value: 70 },
+      { name: "Gemini 2.0 Flash T…", value: 30 },
+      { name: "o3", value: 35 },
+      { name: "Gemini 2.0 Flash", value: 28 },
+      { name: "o1-pro", value: 40 },
+      { name: "Claude 3.5 Sonnet", value: 50 },
+      { name: "o1", value: 20 },
       { name: "o1-preview", value: 83 },
+      { name: "Grok-3 Mini (Old)", value: 80 },
+      { name: "QwQ-32B-Preview", value: 20 },
+      { name: "o3-mini", value: 42 },
       { name: "DeepSeek-R1", value: 77 },
-      { name: "Claude 3.5 Sonnet", value: 86 },
-      { name: "QwQ-32B-Preview", value: 79 },
-      { name: "Gemini 2.0 Flash", value: 89 },
-      { name: "o1-mini", value: 75 }
+      { name: "o1-mini", value: 40 }
     ];
-    
+
     // Check URL query parameters for "values" to allow state restoration
     const urlParams = new URLSearchParams(window.location.search);
     const valuesParam = urlParams.get("values");
@@ -232,12 +188,15 @@
       }
     }
 
-    // Dimensions and margins for the chart
+    // Sort the data again (in case we loaded from URL)
+    data.sort((a, b) => d3.descending(a.value, b.value));
+
+    // Dimensions and margins
     const margin = { top: 20, right: 40, bottom: 40, left: 160 },
           width = 800 - margin.left - margin.right,
           height = 500 - margin.top - margin.bottom;
 
-    // Create x and y scales for a horizontal bar chart
+    // Scales for horizontal bar chart
     const xScale = d3.scaleLinear()
       .domain([0, 100])
       .range([0, width])
@@ -254,7 +213,7 @@
       .range([
         "#d99a86", "#8e7ca6", "#ffab91", "#a5d6a7", "#ffd54f", 
         "#90caf9", "#f48fb1", "#ce93d8", "#b0bec5", "#fff59d",
-        "#80cbc4", "#9fa8da", "#bcaaa4", "#e6ee9c"
+        "#80cbc4", "#9fa8da", "#bcaaa4", "#e6ee9c", "#bdbdbd"
       ]);
 
     // Create the SVG container
@@ -266,24 +225,48 @@
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // X axis (on bottom)
-    svg.append("g")
+    // Watermark image behind bars
+    // svg.append("image")
+    //    .attr("xlink:href", "face.png")
+    //    .attr("x", 0)
+    //    .attr("y", 0)
+    //    .attr("width", width)
+    //    .attr("height", height)
+    //    .attr("opacity", 0.15);
+
+    // Watermark text, hidden by default (opacity=0).
+    // We'll make it visible only when generating the screenshot.
+    const watermarkText = svg.append("text")
+      .attr("id", "screenshot-watermark")
+      .attr("x", width / 2)
+      .attr("y", height - 10)
+      .attr("fill", "white")
+      .attr("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("opacity", 0)
+      .text("WhoCaresAboutFact.barelysmartai.com");
+
+    // X axis
+    const xAxis = svg.append("g")
       .attr("transform", `translate(0, ${height})`)
       .call(d3.axisBottom(xScale).ticks(5))
-      .selectAll("text")
-      .style("font-size", "12px")
-      .style("fill", "#f0f0f0");
+      .call(g => g.selectAll("text")
+        .style("font-size", "12px")
+        .style("fill", "#f0f0f0")
+      );
 
-    // Y axis (on left)
-    svg.append("g")
+    // Y axis
+    const yAxis = svg.append("g")
+      .attr("class", "y-axis")
       .call(d3.axisLeft(yScale))
-      .selectAll("text")
-      .style("font-size", "12px")
-      .style("fill", "#f0f0f0");
+      .call(g => g.selectAll("text")
+        .style("font-size", "12px")
+        .style("fill", "#f0f0f0")
+      );
 
-    // Create horizontal bars
+    // Create horizontal bars on top of the watermark
     const bars = svg.selectAll(".bar")
-      .data(data)
+      .data(data, d => d.name)
       .enter()
       .append("rect")
       .attr("class", "bar")
@@ -302,25 +285,48 @@
       history.replaceState(null, "", newURL);
     }
 
-    // Define drag behavior for horizontal bars
+    // Re-sort data (largest at top) and transition the bars + y-axis
+    function reorderBars() {
+      data.sort((a, b) => d3.descending(a.value, b.value));
+      yScale.domain(data.map(d => d.name));
+
+      yAxis.transition()
+        .duration(750)
+        .call(d3.axisLeft(yScale))
+        .call(g => g.selectAll("text")
+          .style("font-size", "12px")
+          .style("fill", "#f0f0f0")
+        );
+
+      svg.selectAll(".bar")
+        .data(data, d => d.name)
+        .transition()
+        .duration(750)
+        .attr("y", d => yScale(d.name))
+        .attr("width", d => xScale(d.value));
+    }
+
+    // Define drag behavior
     const drag = d3.drag()
       .on("drag", function(event, d) {
-        // newX is how far along the x-axis we've dragged
         let newX = event.x;
-        // clamp the value so it doesn't go below 0 or above width
         newX = Math.max(0, Math.min(newX, width));
         const newValue = Math.round(xScale.invert(newX));
         d.value = newValue;
-        d3.select(this)
-          .attr("width", xScale(d.value));
+        d3.select(this).attr("width", xScale(d.value));
       })
-      .on("end", updateURL);
+      .on("end", function() {
+        updateURL();
+        reorderBars();
+      });
 
-    // Attach drag behavior to bars
     bars.call(drag);
 
-    // Download chart as PNG
+    // Download chart as PNG (with watermark text)
     function downloadChart() {
+      // Show the watermark text
+      watermarkText.style("opacity", 1);
+
       const svgElement = document.querySelector("#chart svg");
       const serializer = new XMLSerializer();
       const svgString = serializer.serializeToString(svgElement);
@@ -329,6 +335,7 @@
       canvas.height = svgElement.getAttribute("height");
       const ctx = canvas.getContext("2d");
       const img = new Image();
+
       img.onload = function() {
         ctx.drawImage(img, 0, 0);
         const pngFile = canvas.toDataURL("image/png");
@@ -336,7 +343,11 @@
         downloadLink.download = "chart.png";
         downloadLink.href = pngFile;
         downloadLink.click();
+
+        // Hide the watermark text again for normal display
+        watermarkText.style("opacity", 0);
       };
+
       img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
     }
 
@@ -354,7 +365,6 @@
       }
     }
 
-    // Make functions available to buttons
     window.downloadChart = downloadChart;
     window.shareLink = shareLink;
   </script>
