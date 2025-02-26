@@ -101,12 +101,12 @@ canvas {
 }
 
 #jump-button {
-    right: 140px;
+    right: 30px;
     top: 45px;
 }
 
 #attack-button {
-    right: 30px;
+    right: 140px;
     top: 45px;
 }
 
@@ -166,12 +166,12 @@ canvas {
     }
     
     #jump-button {
-        right: 105px;
+        right: 15px;
         top: 45px;
     }
     
     #attack-button {
-        right: 15px;
+        right: 105px;
         top: 45px;
     }
 }
