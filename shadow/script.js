@@ -340,6 +340,8 @@ function loadStage(stageNum) {
     enemies = [];
     projectiles = [];
     particles = [];
+
+    playMusicForStage(stageNum)
     
     // Set up platforms
     switch(stageNum) {
