@@ -616,7 +616,7 @@
                     });
                     
                     break;
-                    
+                
                 case 2:
                     // Stage 2: Boss battle stage
                     
@@ -669,8 +669,6 @@
                         animTimer: 0,
                         flashTimer: 0
                     });
-                    
-                    console.log("Boss initialized with health:", enemies[enemies.length-1].health);
                     
                     break;
             }
@@ -1657,11 +1655,6 @@
                     enemy.animTimer = 0;
                 }
                 
-                // Debug boss health
-                if (enemy.type === 'boss') {
-                    console.log(`Boss update: health=${enemy.health}, invulnerable=${enemy.isInvulnerable}`);
-                }
-                
                 // Enemy behavior based on type
                 switch(enemy.type) {
                     case 'patrol':
@@ -1982,17 +1975,11 @@
                 
                 // Check if enemy is dead
                 if (enemy.health <= 0) {
-                    // Log boss death
-                    if (enemy.type === 'boss') {
-                        console.log("Boss is being removed, health is now zero");
-                    }
-                    
                     // Add death animation/particles
                     createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
                     
                     // Add score
                     if (enemy.type === 'boss') {
-                        console.log("Boss defeated! Health was:", enemy.health);
                         // Boss death - big explosion and high score
                         for (let i = 0; i < 5; i++) {
                             setTimeout(() => {
@@ -2015,10 +2002,10 @@
                         return; // Exit the loop to prevent further processing
                     } else {
                         player.score += 100;
-                        
-                        // Remove regular enemy
-                        enemies.splice(i, 1);
                     }
+                    
+                    // Remove enemy
+                    enemies.splice(i, 1);
                 }
             }
         }
@@ -2061,7 +2048,6 @@
                             
                             // Special handling for boss - check invulnerability
                             if (enemy.type === 'boss' && enemy.isInvulnerable) {
-                                console.log("Boss deflected a projectile (invulnerable)");
                                 // Boss is invulnerable - create deflect effect
                                 for (let k = 0; k < 3; k++) {
                                     particles.push({
@@ -2081,24 +2067,13 @@
                             }
                             
                             // Damage enemy if not an invulnerable boss
-                            if (enemy.type === 'boss') {
-                                console.log("Boss hit by projectile before damage:", enemy.health);
-                            }
+                            enemy.health--;
                             
-                            // Only damage if it's not a boss that's invulnerable
-                            if (!(enemy.type === 'boss' && enemy.isInvulnerable)) {
-                                // Only damage enemies with positive health
-                                if (enemy.health > 0) {
-                                    enemy.health--;
-                                    
-                                    // Set boss invulnerability and flash effect
-                                    if (enemy.type === 'boss') {
-                                        console.log("Boss hit! Health remaining:", enemy.health);
-                                        enemy.isInvulnerable = true;
-                                        enemy.invulnerableTimer = 0.5;
-                                        enemy.flashTimer = 0.5;
-                                    }
-                                }
+                            // Set boss invulnerability and flash effect
+                            if (enemy.type === 'boss') {
+                                enemy.isInvulnerable = true;
+                                enemy.invulnerableTimer = 0.5;
+                                enemy.flashTimer = 0.5;
                             }
                             
                             // Create small hit effect
@@ -2166,41 +2141,29 @@
                         
                         // Special handling for boss
                         if (enemy.type === 'boss') {
-                            console.log("Player collided with boss");
                             // Player jumped on boss head - damage boss instead
                             if (player.dy > 0 && player.y + player.height < enemy.y + enemy.height/2) {
-                                console.log("Player jumped on boss head, invulnerable:", enemy.isInvulnerable);
+                                enemy.health--;
+                                player.dy = -350; // Bounce off boss
                                 
-                                // Only damage the boss if it's not currently invulnerable
-                                if (!enemy.isInvulnerable && enemy.health > 0) {
-                                    console.log("Damaging boss from head jump");
-                                    enemy.health--;
-                                    console.log("Boss head hit! Health remaining:", enemy.health);
-                                    
-                                    // Set boss flash effect
-                                    enemy.isInvulnerable = true;
-                                    enemy.invulnerableTimer = 0.5;
-                                    enemy.flashTimer = 0.5;
-                                    
-                                    // Create hit effect
-                                    for (let k = 0; k < 10; k++) {
-                                        particles.push({
-                                            x: enemy.x + enemy.width/2,
-                                            y: enemy.y,
-                                            dx: (Math.random() - 0.5) * 50,
-                                            dy: (Math.random() - 0.5) * 30 - 20,
-                                            size: 2 + Math.random() * 3,
-                                            color: COLORS.white,
-                                            lifetime: 0,
-                                            maxLifetime: 0.5
-                                        });
-                                    }
-                                } else {
-                                    console.log("Boss blocked head jump (invulnerable)");
+                                // Set boss flash effect
+                                enemy.isInvulnerable = true;
+                                enemy.invulnerableTimer = 0.5;
+                                enemy.flashTimer = 0.5;
+                                
+                                // Create hit effect
+                                for (let k = 0; k < 10; k++) {
+                                    particles.push({
+                                        x: enemy.x + enemy.width/2,
+                                        y: enemy.y,
+                                        dx: (Math.random() - 0.5) * 50,
+                                        dy: (Math.random() - 0.5) * 30 - 20,
+                                        size: 2 + Math.random() * 3,
+                                        color: COLORS.white,
+                                        lifetime: 0,
+                                        maxLifetime: 0.5
+                                    });
                                 }
-                                
-                                // Always bounce the player off regardless of invulnerability
-                                player.dy = -350;
                                 continue; // Skip the rest of damage code
                             }
                         }

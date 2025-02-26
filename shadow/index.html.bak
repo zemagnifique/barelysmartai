@@ -615,8 +615,34 @@
                         animTimer: 0
                     });
                     
-                    break;
+                    // Boss
+                    enemies.push({
+                        x: GAME_WIDTH/2 - 40,
+                        y: GAME_HEIGHT - 160,
+                        width: 80,
+                        height: 120,
+                        type: 'boss',
+                        health: 10,
+                        maxHealth: 10,
+                        speed: 70,
+                        direction: 1,
+                        attackCooldown: 3,
+                        attackPhase: 0, // 0-ground attack, 1-jump attack, 2-projectile barrage
+                        phaseTimer: 4,
+                        jumpPower: 500,
+                        dy: 0,
+                        onGround: true,
+                        isInvulnerable: false,
+                        invulnerableTimer: 0,
+                        animFrame: 0,
+                        animTimer: 0,
+                        flashTimer: 0
+                    });
                     
+                    console.log("Boss initialized with health:", enemies[enemies.length-1].health);
+                    
+                    break;
+                
                 case 2:
                     // Stage 2: Boss battle stage
                     
@@ -669,8 +695,6 @@
                         animTimer: 0,
                         flashTimer: 0
                     });
-                    
-                    console.log("Boss initialized with health:", enemies[enemies.length-1].health);
                     
                     break;
             }
