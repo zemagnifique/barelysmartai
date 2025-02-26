@@ -1129,6 +1129,13 @@
                     projectiles.splice(i, 1);
                 }
             }
+            
+            // Remove expired particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                if (particles[i].lifetime >= particles[i].maxLifetime) {
+                    particles.splice(i, 1);
+                }
+            }
         }
         
         // Helper function to update player state
@@ -1688,19 +1695,8 @@
                     projectile.height
                 );
                 
-                // Add particle trail effect
-                if (Math.random() < 0.3) {
-                    particles.push({
-                        x: projectile.x - projectile.width/2 + Math.random() * projectile.width,
-                        y: projectile.y - projectile.height/2 + Math.random() * projectile.height,
-                        dx: (Math.random() - 0.5) * 20,
-                        dy: -Math.random() * 30,
-                        size: 2 + Math.random() * 3,
-                        color: COLORS.white,
-                        lifetime: 0,
-                        maxLifetime: 0.3
-                    });
-                }
+                // Remove particle trail effect
+                // No particles for ground shockwaves anymore
             } else if (projectile.type === 'energyBall') {
                 // Boss energy projectile
                 const pulseSize = Math.sin(projectile.lifetime * 5) * 2;
@@ -2580,16 +2576,16 @@
             ctx.globalAlpha = 1 - (particle.lifetime / particle.maxLifetime);
             
             if (particle.isBlood) {
-                // Blood particle rendering - simplified
+                // Blood particle rendering
                 ctx.fillStyle = particle.color;
                 
                 if (particle.isPool) {
-                    // Simplified blood pool (just a circle)
+                    // Blood pool (circle)
                     ctx.beginPath();
                     ctx.arc(
                         particle.x,
                         particle.y,
-                        particle.size * 0.8, // Smaller size
+                        particle.size * 0.9, // Slightly larger for visibility
                         0, Math.PI * 2
                     );
                     ctx.fill();
@@ -2598,12 +2594,12 @@
                     particle.dx *= 0.95;
                     particle.dy *= 0.95;
                 } else {
-                    // Simple dot instead of droplet shape
+                    // Blood droplet
                     ctx.beginPath();
                     ctx.arc(
                         particle.x,
                         particle.y,
-                        particle.size * 0.7, // Smaller size
+                        particle.size * 0.8, // Slightly larger for visibility
                         0, Math.PI * 2
                     );
                     ctx.fill();
@@ -2619,34 +2615,41 @@
             particle.x += particle.dx * 1/60;
             particle.y += particle.dy * 1/60;
             
-            // Add gravity to blood particles (reduced)
+            // Add gravity to blood particles (increased)
             if (particle.isBlood) {
                 if (particle.isPool) {
                     // Pools barely move
                     particle.dy = Math.min(particle.dy, 50);
                 } else {
-                    // Less gravity
-                    particle.dy += 30 * 1/60;
+                    // Increased gravity - make blood fall faster
+                    particle.dy += 800 * 1/60;
                 }
                 
-                // Check for collision with platforms - REDUCED CHANCE OF POOL FORMATION
-                if (Math.random() < 0.3) { // Only 30% chance to check for pools
-                    for (const platform of platforms) {
-                        if (particle.x > platform.x && 
-                            particle.x < platform.x + platform.width &&
-                            particle.y + particle.size/2 > platform.y &&
-                            particle.y - particle.size/2 < platform.y) {
-                            
-                            // Convert to a pool when hitting a platform (less often)
-                            if (!particle.isPool && Math.random() < 0.3) { // Only 30% chance
-                                particle.isPool = true;
-                                particle.y = platform.y;
-                                particle.dy = 0;
-                                particle.dx *= 0.3;
-                                particle.maxLifetime = Math.min(particle.maxLifetime + 0.3, 0.8); // Shorter pool lifetime
-                            }
+                // Check for collision with platforms - ALWAYS FORM POOLS ON GROUND
+                for (const platform of platforms) {
+                    if (particle.x > platform.x && 
+                        particle.x < platform.x + platform.width &&
+                        particle.y + particle.size/2 > platform.y &&
+                        particle.y - particle.size/2 < platform.y) {
+                        
+                        // Always convert to a pool when hitting a platform
+                        if (!particle.isPool) {
+                            particle.isPool = true;
+                            particle.y = platform.y;
+                            particle.dy = 0;
+                            particle.dx *= 0.1; // Slow horizontal movement significantly
+                            particle.maxLifetime = Math.min(particle.maxLifetime + 0.5, 1.0); // Shorter pool lifetime (was 1.5, 3.0)
                         }
                     }
+                }
+                
+                // Check if blood reaches the bottom of the screen (ground)
+                if (particle.y > GAME_HEIGHT - 10 && !particle.isPool) {
+                    particle.isPool = true;
+                    particle.y = GAME_HEIGHT - 5;
+                    particle.dy = 0;
+                    particle.dx *= 0.1;
+                    particle.maxLifetime = Math.min(particle.maxLifetime + 0.5, 1.0);
                 }
             }
             
@@ -3009,7 +3012,7 @@
                                         size: 4 + Math.random() * 4,
                                         color: COLORS.white,
                                         lifetime: 0,
-                                        maxLifetime: 0.8
+                                        maxLifetime: 0.2 + Math.random() * 0.2 // Much shorter lifetime (was 0.3 + 0.3)
                                     });
                                 }
                             }
@@ -3290,9 +3293,9 @@
                     dx: Math.cos(angle) * speed,
                     dy: Math.sin(angle) * speed,
                     size: size,
-                    color: '#BB5555', // Lighter, less intense red
+                    color: '#990000', // Darker red (was #BB5555)
                     lifetime: 0,
-                    maxLifetime: 0.4 + Math.random() * 0.4, // Shorter lifetime
+                    maxLifetime: 0.2 + Math.random() * 0.2, // Much shorter lifetime (was 0.4 + 0.4)
                     isBlood: true
                 });
             }
@@ -3311,9 +3314,9 @@
                     dx: Math.cos(angle) * 5,
                     dy: Math.sin(angle) * 5 + 10, // Less movement
                     size: 3 + Math.random() * 4, // Smaller pools
-                    color: '#BB5555', // Lighter red
+                    color: '#990000', // Darker red (was #BB5555)
                     lifetime: 0,
-                    maxLifetime: 0.8 + Math.random() * 0.5, // Shorter lifetime
+                    maxLifetime: 0.4 + Math.random() * 0.3, // Shorter lifetime (was 0.8 + 0.5)
                     isBlood: true,
                     isPool: true
                 });
@@ -3350,7 +3353,7 @@
                                         size: 2 + Math.random() * 2,
                                         color: COLORS.white,
                                         lifetime: 0,
-                                        maxLifetime: 0.2
+                                        maxLifetime: 0.2 + Math.random() * 0.2 // Much shorter lifetime (was 0.3 + 0.3)
                                     });
                                 }
                                 // Remove projectile
@@ -3397,9 +3400,9 @@
                                     dx: (Math.random() - 0.5) * 15 + (proj.dx * 0.2), // Less momentum
                                     dy: Math.random() * 25 + 5, // Less vertical movement
                                     size: 2 + Math.random() * 2, // Smaller size
-                                    color: '#BB5555', // Lighter red
+                                    color: '#990000', // Darker red (was #BB5555)
                                     lifetime: 0,
-                                    maxLifetime: 0.3 + Math.random() * 0.3, // Shorter lifetime
+                                    maxLifetime: 0.2 + Math.random() * 0.2, // Much shorter lifetime (was 0.3 + 0.3)
                                     isBlood: true // Mark as blood particle for special rendering
                                 });
                             }
@@ -3434,7 +3437,7 @@
                                 dx: (Math.random() - 0.5) * 25, // Reduced spread
                                 dy: Math.random() * 20 + 5, // Less vertical movement
                                 size: 1 + Math.random() * 3, // Smaller size
-                                color: '#BB5555', // Lighter red
+                                color: '#990000', // Darker red (was #BB5555)
                                 lifetime: 0,
                                 maxLifetime: 0.3 + Math.random() * 0.3, // Shorter lifetime
                                 isBlood: true // Mark as blood particle for special rendering
@@ -3480,9 +3483,9 @@
                                             dx: (Math.random() - 0.5) * 25, // Reduced spread
                                             dy: Math.random() * 20 + 5, // Less vertical movement
                                             size: 1 + Math.random() * 3, // Smaller size
-                                            color: '#BB5555', // Lighter red
+                                            color: '#990000', // Darker red (was #BB5555)
                                             lifetime: 0,
-                                            maxLifetime: 0.3 + Math.random() * 0.3, // Shorter lifetime
+                                            maxLifetime: 0.2 + Math.random() * 0.2, // Much shorter lifetime (was 0.3 + 0.3)
                                             isBlood: true // Mark as blood particle for special rendering
                                         });
                                     }
