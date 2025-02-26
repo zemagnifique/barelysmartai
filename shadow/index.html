@@ -1325,26 +1325,76 @@
                 ctx.translate(centerX, centerY);
                 ctx.rotate(rotationAngle);
                 
-                // Draw ball shape instead of regular ninja pose
-                // Black circular body
+                // Draw curled-up ninja (tucked position) instead of just a ball
+                
+                // Main body (torso) - slightly oval
                 ctx.fillStyle = COLORS.black;
                 ctx.beginPath();
-                ctx.arc(0, 0, player.width/2.5, 0, Math.PI * 2);
+                ctx.ellipse(0, 0, player.width/3, player.height/3, 0, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // White headband/mask detail (stripe across the ball)
-                ctx.fillStyle = COLORS.white;
-                ctx.fillRect(-player.width/3, -player.height/12, player.width*2/3, player.height/6);
+                // Head
+                ctx.fillStyle = COLORS.black;
+                ctx.beginPath();
+                ctx.arc(-player.width/8, -player.height/5, player.width/5, 0, Math.PI * 2);
+                ctx.fill();
                 
-                // Add spinning motion lines 
+                // White headband/mask 
+                ctx.fillStyle = COLORS.white;
+                ctx.fillRect(-player.width/4, -player.height/4, player.width/2, player.height/12);
+                
+                // Tucked legs (curved shapes)
+                ctx.fillStyle = COLORS.black;
+                
+                // Left leg (curved)
+                ctx.beginPath();
+                ctx.arc(player.width/12, player.height/12, player.width/6, 0, Math.PI, true);
+                ctx.fill();
+                
+                // Right leg (curved differently)
+                ctx.beginPath();
+                ctx.arc(-player.width/12, player.height/8, player.width/6, 0, Math.PI, true);
+                ctx.fill();
+                
+                // Arms wrapped around legs
+                ctx.lineWidth = player.width/12;
+                ctx.strokeStyle = COLORS.black;
+                ctx.beginPath();
+                ctx.arc(0, 0, player.width/4, 0.5 * Math.PI, 1.5 * Math.PI, false);
+                ctx.stroke();
+                
+                // Scarf trailing behind based on rotation
+                ctx.fillStyle = COLORS.white;
+                const scarfAngle = Math.PI + (Date.now() * 0.005) % (Math.PI * 2);
+                const scarfLength = player.width/2;
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -player.height/6);
+                
+                // Create a flowing, curved scarf with bezier curves
+                ctx.bezierCurveTo(
+                    Math.cos(scarfAngle) * scarfLength * 0.5, Math.sin(scarfAngle) * scarfLength * 0.5 - player.height/6,
+                    Math.cos(scarfAngle) * scarfLength * 0.8, Math.sin(scarfAngle) * scarfLength * 0.8 - player.height/12,
+                    Math.cos(scarfAngle) * scarfLength, Math.sin(scarfAngle) * scarfLength
+                );
+                
+                ctx.bezierCurveTo(
+                    Math.cos(scarfAngle + 0.2) * scarfLength * 0.8, Math.sin(scarfAngle + 0.2) * scarfLength * 0.8,
+                    Math.cos(scarfAngle + 0.3) * scarfLength * 0.5, Math.sin(scarfAngle + 0.3) * scarfLength * 0.5,
+                    0, -player.height/12
+                );
+                
+                ctx.fill();
+                
+                // Add spin motion lines
                 const spinLines = 8;
                 ctx.strokeStyle = COLORS.white;
                 ctx.lineWidth = 1;
                 
                 for (let i = 0; i < spinLines; i++) {
                     const angle = (i / spinLines) * Math.PI * 2;
-                    const innerRadius = player.width/2.5 + 2;
-                    const outerRadius = player.width/2.5 + 8 + Math.sin(Date.now() * 0.01 + i) * 3;
+                    const innerRadius = player.width/2 + 2;
+                    const outerRadius = player.width/2 + 8 + Math.sin(Date.now() * 0.01 + i) * 3;
                     
                     ctx.beginPath();
                     ctx.moveTo(
@@ -1361,7 +1411,7 @@
                 // Add trail particles when spinning
                 if (Math.random() < 0.3) {
                     const angle = Math.random() * Math.PI * 2;
-                    const radius = player.width/2.5 + 2;
+                    const radius = player.width/2 + 2;
                     
                     particles.push({
                         x: centerX + Math.cos(angle) * radius,
