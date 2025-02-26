@@ -282,110 +282,113 @@
                 space: false
             };
             
-            // Track active touches by identifier
-            const activeTouches = {};
+            // Track active touches and their associated buttons
+            const activeTouches = new Map();
             
-            // Helper function to handle button touches with multi-touch support
-            function setupTouchButton(id, controlKey) {
-    const button = document.getElementById(id);
-    
-    button.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        for (let i = 0; i < e.changedTouches.length; i++) {
-            const touch = e.changedTouches[i];
-            activeTouches[touch.identifier] = { element: button, control: controlKey };
-        }
-        touchControls[controlKey] = true;
-        button.style.backgroundColor = '#8bac8b';
-    });
-    
-    function endTouch(e) {
-        e.preventDefault();
-        for (let i = 0; i < e.changedTouches.length; i++) {
-            const touch = e.changedTouches[i];
-            if (activeTouches[touch.identifier] && activeTouches[touch.identifier].element === button) {
-                delete activeTouches[touch.identifier];
+            // Helper function to get button element from touch coordinates
+            function getButtonFromTouch(touch) {
+                const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+                return elements.find(el => el.classList.contains('control-button'));
             }
-        }
-        // Check if any touches remain on this button
-        let stillActive = false;
-        for (const id in activeTouches) {
-            if (activeTouches[id].element === button) {
-                stillActive = true;
-                break;
-            }
-        }
-        if (!stillActive) {
-            touchControls[controlKey] = false;
-            button.style.backgroundColor = '#306630';
-        }
-    }
-    
-    // Handle both touchend and touchcancel
-    button.addEventListener('touchend', endTouch);
-    button.addEventListener('touchcancel', endTouch);
-    
-    // Prevent default behavior during touch moves
-    button.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-    });
-}
-
-
-            function setupTouchButton(id, controlKey) {
-    const button = document.getElementById(id);
-    
-    button.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        for (let i = 0; i < e.changedTouches.length; i++) {
-            const touch = e.changedTouches[i];
-            activeTouches[touch.identifier] = { element: button, control: controlKey };
-        }
-        touchControls[controlKey] = true;
-        button.style.backgroundColor = '#8bac8b';
-    });
-    
-    function endTouch(e) {
-        e.preventDefault();
-        for (let i = 0; i < e.changedTouches.length; i++) {
-            const touch = e.changedTouches[i];
-            if (activeTouches[touch.identifier] && activeTouches[touch.identifier].element === button) {
-                delete activeTouches[touch.identifier];
-            }
-        }
-        // Check if any touches remain on this button
-        let stillActive = false;
-        for (const id in activeTouches) {
-            if (activeTouches[id].element === button) {
-                stillActive = true;
-                break;
-            }
-        }
-        if (!stillActive) {
-            touchControls[controlKey] = false;
-            button.style.backgroundColor = '#306630';
-        }
-    }
-    
-    // Handle both touchend and touchcancel
-    button.addEventListener('touchend', endTouch);
-    button.addEventListener('touchcancel', endTouch);
-    
-    // Prevent default behavior during touch moves
-    button.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-    });
-}
-
             
-            // Show mobile controls on smaller screens or touch devices
-            function detectTouchDevice() {
-                if (('ontouchstart' in window) || window.innerWidth <= 820) {
-                    document.getElementById('mobile-controls').style.display = 'block';
-                    // Adjust space button visibility based on game state
-                    updateSpaceButtonVisibility();
+            // Helper function to get control key from button ID
+            function getControlFromButton(button) {
+                const buttonMap = {
+                    'left-button': 'left',
+                    'right-button': 'right',
+                    'jump-button': 'jump',
+                    'attack-button': 'attack',
+                    'space-button': 'space'
+                };
+                return buttonMap[button.id];
+            }
+            
+            // Helper function to reset all controls
+            function resetAllControls() {
+                Object.keys(touchControls).forEach(key => {
+                    touchControls[key] = false;
+                });
+                document.querySelectorAll('.control-button').forEach(button => {
+                    button.style.backgroundColor = '#306630';
+                });
+                activeTouches.clear();
+            }
+            
+            // Add touch event listeners to the mobile controls container
+            const mobileControls = document.getElementById('mobile-controls');
+            
+            mobileControls.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                
+                // Handle each new touch
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    const button = getButtonFromTouch(touch);
+                    
+                    if (button) {
+                        const control = getControlFromButton(button);
+                        if (control) {
+                            activeTouches.set(touch.identifier, {
+                                button: button,
+                                control: control
+                            });
+                            touchControls[control] = true;
+                            button.style.backgroundColor = '#8bac8b';
+                        }
+                    }
                 }
-            }
+            }, { passive: false });
+            
+            mobileControls.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                
+                // Check if touches have moved off their original buttons
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    const touchInfo = activeTouches.get(touch.identifier);
+                    
+                    if (touchInfo) {
+                        const currentButton = getButtonFromTouch(touch);
+                        if (currentButton !== touchInfo.button) {
+                            // Touch has moved off the button
+                            touchControls[touchInfo.control] = false;
+                            touchInfo.button.style.backgroundColor = '#306630';
+                            activeTouches.delete(touch.identifier);
+                        }
+                    }
+                }
+            }, { passive: false });
+            
+            mobileControls.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                
+                // Remove ended touches and reset their controls
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    const touchInfo = activeTouches.get(touch.identifier);
+                    
+                    if (touchInfo) {
+                        touchControls[touchInfo.control] = false;
+                        touchInfo.button.style.backgroundColor = '#306630';
+                        activeTouches.delete(touch.identifier);
+                    }
+                }
+            }, { passive: false });
+            
+            mobileControls.addEventListener('touchcancel', function(e) {
+                e.preventDefault();
+                resetAllControls();
+            }, { passive: false });
+            
+            // Reset controls when window loses focus
+            window.addEventListener('blur', resetAllControls);
+            
+            // Reset controls when switching tabs
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    resetAllControls();
+                }
+            });
             
             // Function to update space button visibility based on game state
             function updateSpaceButtonVisibility() {
@@ -394,7 +397,7 @@
                 if (window.gameState === 'start_screen') {
                     spaceButton.innerText = 'START';
                     spaceButton.style.display = 'flex';
-                } else if (window.gameState === 'gameOver' || window.gameState === 'gameComplete') {
+                } else if (window.gameState === 'game_over' || window.gameState === 'game_complete') {
                     spaceButton.innerText = 'RESTART';
                     spaceButton.style.display = 'flex';
                 } else if (window.gameState === 'playing') {
@@ -402,58 +405,6 @@
                     spaceButton.style.display = 'none';
                 }
             }
-            
-            // Setup all buttons
-            setupTouchButton('left-button', 'left');
-            setupTouchButton('right-button', 'right');
-            setupTouchButton('jump-button', 'jump');
-            setupTouchButton('attack-button', 'attack');
-            setupTouchButton('space-button', 'space');
-            
-            // Make the keyboard controls work as virtual key presses
-            window.addEventListener('keydown', function(e) {
-                switch(e.key) {
-                    case 'ArrowLeft': 
-                        keys.ArrowLeft = true;
-                        break;
-                    case 'ArrowRight': 
-                        keys.ArrowRight = true;
-                        break;
-                    case 'z':
-                    case 'Z': 
-                        keys.z = true;
-                        break;
-                    case 'x':
-                    case 'X': 
-                        keys.x = true;
-                        break;
-                    case ' ': 
-                        keys[' '] = true;
-                        break;
-                }
-            });
-            
-            window.addEventListener('keyup', function(e) {
-                switch(e.key) {
-                    case 'ArrowLeft': 
-                        keys.ArrowLeft = false;
-                        break;
-                    case 'ArrowRight': 
-                        keys.ArrowRight = false;
-                        break;
-                    case 'z':
-                    case 'Z': 
-                        keys.z = false;
-                        break;
-                    case 'x':
-                    case 'X': 
-                        keys.x = false;
-                        break;
-                    case ' ': 
-                        keys[' '] = false;
-                        break;
-                }
-            });
             
             // Handle touch controls in game loop
             const gameLoop = function() {
@@ -474,8 +425,11 @@
                 requestAnimationFrame(gameLoop);
             };
             
-            // Detect touch device on page load
-            detectTouchDevice();
+            // Show mobile controls on touch devices
+            if (('ontouchstart' in window) || window.innerWidth <= 820) {
+                mobileControls.style.display = 'block';
+                updateSpaceButtonVisibility();
+            }
             
             gameLoop();
         });
