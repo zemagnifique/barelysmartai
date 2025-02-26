@@ -1748,47 +1748,32 @@
                         enemy.height
                     );
                     
-                    // Head band
-                    ctx.fillStyle = '#000000';
+                    // Ninja mask/hood
+                    ctx.fillStyle = '#660000';
                     ctx.fillRect(
                         enemy.x,
-                        enemy.y + enemy.height/8,
+                        enemy.y,
                         enemy.width,
-                        enemy.height/10
+                        enemy.height/3
                     );
                     
                     // Eyes
-                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillStyle = COLORS.white;
+                    
+                    // Determine eye position based on direction facing
+                    const eyeX = enemy.direction > 0 ? enemy.x + enemy.width*2/3 : enemy.x + enemy.width/4;
                     ctx.fillRect(
-                        enemy.x + (enemy.direction > 0 ? enemy.width*2/3 : enemy.width/4), 
-                        enemy.y + enemy.height/5,
+                        eyeX, 
+                        enemy.y + enemy.height/8,
                         enemy.width/8,
                         enemy.height/10
                     );
                     
-                    // Arms
-                    ctx.fillStyle = '#990000';
-                    // Left arm
-                    ctx.fillRect(
-                        enemy.x - enemy.width/6,
-                        enemy.y + enemy.height/3,
-                        enemy.width/6,
-                        enemy.height/4
-                    );
+                    // Animated leg positions based on frame
+                    const legOffset = [0, 5, 0, -5][enemy.animFrame];
                     
-                    // Right arm
-                    ctx.fillRect(
-                        enemy.x + enemy.width,
-                        enemy.y + enemy.height/3,
-                        enemy.width/6,
-                        enemy.height/4
-                    );
-                    
-                    // Legs (animated based on frame)
-                    ctx.fillStyle = '#000000';
-                    const legOffset = [0, 3, 0, -3][enemy.animFrame];
-                    
-                    // Left leg
+                    // Legs with animation
+                    ctx.fillStyle = '#AA0000';
                     ctx.fillRect(
                         enemy.x + enemy.width/3 - 3,
                         enemy.y + enemy.height*2/3,
@@ -1796,7 +1781,6 @@
                         enemy.height/3 + legOffset
                     );
                     
-                    // Right leg
                     ctx.fillRect(
                         enemy.x + enemy.width*2/3 - 3,
                         enemy.y + enemy.height*2/3,
@@ -2177,9 +2161,19 @@
                 
                 case 'boss':
                     // Draw boss with damage flash effect
-                    ctx.fillStyle = enemy.flashTimer > 0 && flickering ? COLORS.white : COLORS.darkGray;
+                    const bossColor = enemy.flashTimer > 0 && flickering ? COLORS.white : '#333344';
                     
-                    // Body
+                    // Dark shadow effect
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(
+                        enemy.x + 5, 
+                        enemy.y + 5, 
+                        enemy.width, 
+                        enemy.height
+                    );
+                    
+                    // Main body
+                    ctx.fillStyle = bossColor;
                     ctx.fillRect(
                         enemy.x, 
                         enemy.y, 
@@ -2187,8 +2181,17 @@
                         enemy.height
                     );
                     
-                    // Head details
-                    ctx.fillStyle = COLORS.white;
+                    // Armored head
+                    ctx.fillStyle = '#444455';
+                    ctx.fillRect(
+                        enemy.x + enemy.width/4 - 5, 
+                        enemy.y - 5, 
+                        enemy.width/2 + 10, 
+                        enemy.height/4 + 5
+                    );
+                    
+                    // Face mask
+                    ctx.fillStyle = enemy.isInvulnerable ? '#CCCCFF' : '#222233';
                     ctx.fillRect(
                         enemy.x + enemy.width/4, 
                         enemy.y, 
@@ -2197,7 +2200,8 @@
                     );
                     
                     // Glowing eyes
-                    ctx.fillStyle = enemy.isInvulnerable ? COLORS.white : COLORS.black;
+                    const eyeColor = enemy.isInvulnerable ? '#FFFFFF' : '#FF0000';
+                    ctx.fillStyle = eyeColor;
                     
                     // Left eye
                     ctx.fillRect(
@@ -2215,27 +2219,74 @@
                         enemy.height/16
                     );
                     
-                    // Armor plates
-                    ctx.fillStyle = COLORS.black;
+                    // Eye glow effect
+                    if (enemy.isInvulnerable || flickering) {
+                        ctx.globalAlpha = 0.5;
+                        ctx.fillStyle = eyeColor;
+                        
+                        // Left eye glow
+                        ctx.beginPath();
+                        ctx.arc(
+                            enemy.x + enemy.width/3 + enemy.width/16, 
+                            enemy.y + enemy.height/10 + enemy.height/32,
+                            enemy.width/6,
+                            0, Math.PI * 2
+                        );
+                        ctx.fill();
+                        
+                        // Right eye glow
+                        ctx.beginPath();
+                        ctx.arc(
+                            enemy.x + enemy.width*2/3 - enemy.width/8 + enemy.width/16, 
+                            enemy.y + enemy.height/10 + enemy.height/32,
+                            enemy.width/6,
+                            0, Math.PI * 2
+                        );
+                        ctx.fill();
+                        
+                        ctx.globalAlpha = 1.0;
+                    }
+                    
+                    // Armor plates and details
+                    ctx.fillStyle = '#111122';
+                    
+                    // Chest plate
+                    ctx.fillRect(
+                        enemy.x + enemy.width*0.3,
+                        enemy.y + enemy.height*0.25,
+                        enemy.width*0.4,
+                        enemy.height*0.2
+                    );
+                    
+                    // Belt
+                    ctx.fillRect(
+                        enemy.x,
+                        enemy.y + enemy.height*0.6,
+                        enemy.width,
+                        enemy.height*0.05
+                    );
                     
                     // Shoulder plates
-                    ctx.fillRect(
-                        enemy.x - enemy.width/10, 
-                        enemy.y + enemy.height/4,
-                        enemy.width/5,
-                        enemy.height/6
-                    );
+                    ctx.beginPath();
+                    ctx.moveTo(enemy.x - enemy.width/10, enemy.y + enemy.height/4);
+                    ctx.lineTo(enemy.x + enemy.width/6, enemy.y + enemy.height/4);
+                    ctx.lineTo(enemy.x, enemy.y + enemy.height/2);
+                    ctx.lineTo(enemy.x - enemy.width/10, enemy.y + enemy.height/3);
+                    ctx.closePath();
+                    ctx.fill();
                     
-                    ctx.fillRect(
-                        enemy.x + enemy.width - enemy.width/10, 
-                        enemy.y + enemy.height/4,
-                        enemy.width/5,
-                        enemy.height/6
-                    );
+                    ctx.beginPath();
+                    ctx.moveTo(enemy.x + enemy.width + enemy.width/10, enemy.y + enemy.height/4);
+                    ctx.lineTo(enemy.x + enemy.width - enemy.width/6, enemy.y + enemy.height/4);
+                    ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height/2);
+                    ctx.lineTo(enemy.x + enemy.width + enemy.width/10, enemy.y + enemy.height/3);
+                    ctx.closePath();
+                    ctx.fill();
                     
                     // Arms based on attack phase
                     if (enemy.attackPhase === 2) { // Projectile phase
                         // Arms extended
+                        ctx.fillStyle = '#333344';
                         ctx.fillRect(
                             enemy.x - enemy.width/5, 
                             enemy.y + enemy.height/3,
@@ -2252,12 +2303,13 @@
                         
                         // Energy gathering in hands
                         if (flickering) {
-                            ctx.fillStyle = COLORS.white;
+                            // Inner glow
+                            ctx.fillStyle = '#88AAFF';
                             ctx.beginPath();
                             ctx.arc(
                                 enemy.x - enemy.width/5, 
                                 enemy.y + enemy.height/3 + enemy.height/20,
-                                enemy.width/10,
+                                enemy.width/15,
                                 0,
                                 Math.PI * 2
                             );
@@ -2267,14 +2319,41 @@
                             ctx.arc(
                                 enemy.x + enemy.width + enemy.width/5, 
                                 enemy.y + enemy.height/3 + enemy.height/20,
-                                enemy.width/10,
+                                enemy.width/15,
                                 0,
                                 Math.PI * 2
                             );
                             ctx.fill();
+                            
+                            // Outer glow
+                            ctx.globalAlpha = 0.5;
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.beginPath();
+                            ctx.arc(
+                                enemy.x - enemy.width/5, 
+                                enemy.y + enemy.height/3 + enemy.height/20,
+                                enemy.width/8,
+                                0,
+                                Math.PI * 2
+                            );
+                            ctx.fill();
+                            
+                            ctx.beginPath();
+                            ctx.arc(
+                                enemy.x + enemy.width + enemy.width/5, 
+                                enemy.y + enemy.height/3 + enemy.height/20,
+                                enemy.width/8,
+                                0,
+                                Math.PI * 2
+                            );
+                            ctx.fill();
+                            ctx.globalAlpha = 1.0;
                         }
                     } else {
                         // Normal arms
+                        ctx.fillStyle = '#333344';
+                        
+                        // Left arm with armor
                         ctx.fillRect(
                             enemy.x, 
                             enemy.y + enemy.height/3,
@@ -2282,15 +2361,36 @@
                             enemy.height/2
                         );
                         
+                        // Left arm armor
+                        ctx.fillStyle = '#222233';
+                        ctx.fillRect(
+                            enemy.x - enemy.width/20, 
+                            enemy.y + enemy.height/3,
+                            enemy.width/10,
+                            enemy.height/4
+                        );
+                        
+                        // Right arm with armor
+                        ctx.fillStyle = '#333344';
                         ctx.fillRect(
                             enemy.x + enemy.width - enemy.width/6, 
                             enemy.y + enemy.height/3,
                             enemy.width/6,
                             enemy.height/2
                         );
+                        
+                        // Right arm armor
+                        ctx.fillStyle = '#222233';
+                        ctx.fillRect(
+                            enemy.x + enemy.width + enemy.width/20 - enemy.width/10, 
+                            enemy.y + enemy.height/3,
+                            enemy.width/10,
+                            enemy.height/4
+                        );
                     }
                     
-                    // Legs
+                    // Legs with armor plates
+                    ctx.fillStyle = '#333344';
                     ctx.fillRect(
                         enemy.x + enemy.width/4, 
                         enemy.y + enemy.height*2/3,
@@ -2305,58 +2405,146 @@
                         enemy.height/3
                     );
                     
-                    // Health bar above boss
-                    ctx.fillStyle = COLORS.black;
+                    // Leg armor plates
+                    ctx.fillStyle = '#222233';
                     ctx.fillRect(
-                        enemy.x, 
-                        enemy.y - 20,
-                        enemy.width,
-                        10
+                        enemy.x + enemy.width/4 - enemy.width/20, 
+                        enemy.y + enemy.height*2/3,
+                        enemy.width/10,
+                        enemy.height/5
                     );
                     
-                    ctx.fillStyle = COLORS.white;
                     ctx.fillRect(
-                        enemy.x, 
-                        enemy.y - 20,
-                        (enemy.health / enemy.maxHealth) * enemy.width,
-                        10
+                        enemy.x + enemy.width - enemy.width/4 - enemy.width/6 + enemy.width/20, 
+                        enemy.y + enemy.height*2/3,
+                        enemy.width/10,
+                        enemy.height/5
+                    );
+                    
+                    // Health bar above boss
+                    ctx.fillStyle = '#111111';
+                    ctx.fillRect(
+                        enemy.x - 10, 
+                        enemy.y - 25,
+                        enemy.width + 20,
+                        12
+                    );
+                    
+                    // Health gradient
+                    const healthRatio = enemy.health / enemy.maxHealth;
+                    let healthColor = '#00FF00'; // Green
+                    if (healthRatio < 0.3) {
+                        healthColor = '#FF0000'; // Red when low health
+                    } else if (healthRatio < 0.6) {
+                        healthColor = '#FFFF00'; // Yellow when medium health
+                    }
+                    
+                    ctx.fillStyle = healthColor;
+                    ctx.fillRect(
+                        enemy.x - 10, 
+                        enemy.y - 25,
+                        (enemy.health / enemy.maxHealth) * (enemy.width + 20),
+                        12
+                    );
+                    
+                    // Health bar border
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(
+                        enemy.x - 10, 
+                        enemy.y - 25,
+                        enemy.width + 20,
+                        12
                     );
                     break;
+                }
             }
-        }
-        
+            
         // Function to draw particle
         function drawParticle(particle) {
             // Set opacity based on lifetime
             ctx.globalAlpha = 1 - (particle.lifetime / particle.maxLifetime);
             
             if (particle.isBlood) {
-                // Blood particle rendering - simplified
+                // Blood particle rendering
                 ctx.fillStyle = particle.color;
                 
                 if (particle.isPool) {
-                    // Simplified blood pool (just a circle)
+                    // Blood pool/splatter on surfaces
+                    const progress = particle.lifetime / particle.maxLifetime;
+                    const flattenFactor = Math.min(1, progress * 3); // Gradually flatten the pool
+                    
+                    // Draw flattened ellipse for blood pool
                     ctx.beginPath();
-                    ctx.arc(
+                    ctx.ellipse(
                         particle.x,
                         particle.y,
-                        particle.size * 0.8, // Smaller size
-                        0, Math.PI * 2
+                        particle.size * (1 + flattenFactor), // Widen as it flattens
+                        particle.size * (1 - flattenFactor * 0.7), // Flatten height
+                        0, 0, Math.PI * 2
                     );
                     ctx.fill();
                     
-                    // Slow down pool particles
-                    particle.dx *= 0.95;
-                    particle.dy *= 0.95;
-                } else {
-                    // Simple dot instead of droplet shape
+                    // If the pool is forming, add some drips
+                    if (progress < 0.3 && Math.random() < 0.3) {
+                        ctx.beginPath();
+                        const drip = Math.random() * particle.size * 0.8;
+                        ctx.moveTo(particle.x - drip/2, particle.y);
+                        ctx.lineTo(particle.x + drip/2, particle.y);
+                        ctx.lineTo(particle.x, particle.y + particle.size);
+                        ctx.fill();
+                    }
+                    
+                    // Slow down pool particles more dramatically
+                    particle.dx *= 0.9;
+                    particle.dy *= 0.9;
+                    
+                } else if (Math.random() < 0.6) {
+                    // Droplet shape
+                    ctx.beginPath();
+                    ctx.moveTo(particle.x, particle.y - particle.size/2);
+                    ctx.bezierCurveTo(
+                        particle.x - particle.size/2, particle.y - particle.size/2,
+                        particle.x - particle.size/2, particle.y + particle.size/2,
+                        particle.x, particle.y + particle.size
+                    );
+                    ctx.bezierCurveTo(
+                        particle.x + particle.size/2, particle.y + particle.size/2,
+                        particle.x + particle.size/2, particle.y - particle.size/2,
+                        particle.x, particle.y - particle.size/2
+                    );
+                    ctx.fill();
+                    
+                    // Add darker center for depth
+                    ctx.fillStyle = '#660000';
                     ctx.beginPath();
                     ctx.arc(
                         particle.x,
                         particle.y,
-                        particle.size * 0.7, // Smaller size
+                        particle.size/3,
                         0, Math.PI * 2
                     );
+                    ctx.fill();
+                } else {
+                    // Splatter effect
+                    ctx.beginPath();
+                    ctx.arc(
+                        particle.x,
+                        particle.y,
+                        particle.size/2,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+                
+                // Add trail effect for larger drops
+                if (particle.size > 4 && particle.dy > 20 && !particle.isPool) {
+                    ctx.fillStyle = '#660000'; // Darker trail
+                    ctx.beginPath();
+                    ctx.moveTo(particle.x, particle.y);
+                    ctx.lineTo(particle.x - particle.dx * 0.05, particle.y - particle.dy * 0.05);
+                    ctx.lineTo(particle.x + particle.size/4, particle.y - particle.dy * 0.05);
+                    ctx.closePath();
                     ctx.fill();
                 }
             } else {
@@ -2370,32 +2558,30 @@
             particle.x += particle.dx * 1/60;
             particle.y += particle.dy * 1/60;
             
-            // Add gravity to blood particles (reduced)
+            // Add gravity to blood particles
             if (particle.isBlood) {
                 if (particle.isPool) {
-                    // Pools barely move
-                    particle.dy = Math.min(particle.dy, 50);
+                    // Pools slow down quickly
+                    particle.dy = Math.min(particle.dy, 100);
                 } else {
-                    // Less gravity
-                    particle.dy += 30 * 1/60;
+                    // Regular blood gets affected by gravity
+                    particle.dy += 50 * 1/60; // Gravity effect
                 }
                 
-                // Check for collision with platforms - REDUCED CHANCE OF POOL FORMATION
-                if (Math.random() < 0.3) { // Only 30% chance to check for pools
-                    for (const platform of platforms) {
-                        if (particle.x > platform.x && 
-                            particle.x < platform.x + platform.width &&
-                            particle.y + particle.size/2 > platform.y &&
-                            particle.y - particle.size/2 < platform.y) {
-                            
-                            // Convert to a pool when hitting a platform (less often)
-                            if (!particle.isPool && Math.random() < 0.3) { // Only 30% chance
-                                particle.isPool = true;
-                                particle.y = platform.y;
-                                particle.dy = 0;
-                                particle.dx *= 0.3;
-                                particle.maxLifetime = Math.min(particle.maxLifetime + 0.3, 0.8); // Shorter pool lifetime
-                            }
+                // Check for collision with platforms to form pools
+                for (const platform of platforms) {
+                    if (particle.x > platform.x && 
+                        particle.x < platform.x + platform.width &&
+                        particle.y + particle.size/2 > platform.y &&
+                        particle.y - particle.size/2 < platform.y) {
+                        
+                        // Convert to a pool when hitting a platform
+                        if (!particle.isPool) {
+                            particle.isPool = true;
+                            particle.y = platform.y;
+                            particle.dy = 0;
+                            particle.dx *= 0.3;
+                            particle.maxLifetime = Math.max(particle.maxLifetime, 1.5);
                         }
                     }
                 }
@@ -2403,858 +2589,6 @@
             
             // Reset opacity
             ctx.globalAlpha = 1;
-        }
-        
-        // Function to draw UI
-        function drawUI() {
-            // Draw player health
-            const blockSize = 10;
-            const blockSpacing = 12;
-            const topMargin = 40;
-            
-            // LIFE label
-            ctx.fillStyle = COLORS.white;
-            ctx.font = '12px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText('LIFE:', 10, topMargin);
-            
-            // Health blocks
-            for (let i = 0; i < player.maxHealth; i++) {
-                ctx.fillStyle = i < player.health ? COLORS.white : COLORS.darkGray;
-                ctx.fillRect(60 + (i * blockSpacing), topMargin - blockSize, blockSize, blockSize);
-                ctx.strokeStyle = COLORS.black;
-                ctx.strokeRect(60 + (i * blockSpacing), topMargin - blockSize, blockSize, blockSize);
-            }
-            
-            // Score
-            ctx.fillStyle = COLORS.white;
-            ctx.font = '16px monospace';
-            ctx.textAlign = 'right';
-            ctx.fillText(`SCORE: ${player.score.toString().padStart(6, '0')}`, canvas.width - 10, 20);
-        }
-        
-        // Function to draw Game Over screen
-        function drawGameOverScreen() {
-            // Dark overlay
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Game Over text
-            ctx.fillStyle = COLORS.white;
-            ctx.font = '30px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
-            
-            // Score display
-            ctx.font = '16px monospace';
-            ctx.fillText(`FINAL SCORE: ${player.score.toString().padStart(6, '0')}`, canvas.width/2, canvas.height/2 + 20);
-            
-            // Continue text that blinks
-            if (Math.floor(Date.now() / 500) % 2 === 0) {
-                ctx.fillText('PRESS SPACE TO CONTINUE', canvas.width/2, canvas.height/2 + 60);
-            }
-            
-            // Handle restart
-            if (keys[' '] || keys.Space) {
-                resetGame();
-                gameState = 'playing';
-            }
-        }
-        
-        // Function to draw Game Complete screen
-        function drawGameCompleteScreen() {
-            // Dark overlay
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Game Complete text
-            ctx.fillStyle = COLORS.white;
-            ctx.font = '30px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText('GAME COMPLETE!', canvas.width/2, canvas.height/3);
-            
-            // Congratulations text
-            ctx.font = '20px monospace';
-            ctx.fillText('You defeated the Shadow Master!', canvas.width/2, canvas.height/2 - 20);
-            
-            // Score display
-            ctx.font = '16px monospace';
-            ctx.fillText(`FINAL SCORE: ${player.score.toString().padStart(6, '0')}`, canvas.width/2, canvas.height/2 + 20);
-            
-            // Continue text that blinks
-            if (Math.floor(Date.now() / 500) % 2 === 0) {
-                ctx.fillText('PRESS SPACE TO PLAY AGAIN', canvas.width/2, canvas.height/2 + 60);
-            }
-            
-            // Handle restart
-            if (keys[' '] || keys.Space) {
-                resetGame();
-                gameState = 'playing';
-            }
-        }
-        
-        // Function to update enemies
-        function updateEnemies(dt) {
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const enemy = enemies[i];
-                
-                // Animation timer for all enemies
-                enemy.animTimer += dt;
-                if (enemy.animTimer >= 0.2) { // Frame rate of animation
-                    enemy.animFrame = (enemy.animFrame + 1) % 4; // 4 frames of animation
-                    enemy.animTimer = 0;
-                }
-                
-                // Debug boss health
-                if (enemy.type === 'boss') {
-                    console.log(`Boss update: health=${enemy.health}, invulnerable=${enemy.isInvulnerable}`);
-                }
-                
-                // Enemy behavior based on type
-                switch(enemy.type) {
-                    case 'patrol':
-                        // Basic horizontal patrol
-                        enemy.x += enemy.speed * enemy.direction * dt;
-                        
-                        // Check for platform edges or obstacles
-                        let onPlatform = false;
-                        let hitWall = false;
-                        
-                        for (const platform of platforms) {
-                            // Check if on platform
-                            if (enemy.x + enemy.width > platform.x &&
-                                enemy.x < platform.x + platform.width &&
-                                enemy.y + enemy.height >= platform.y &&
-                                enemy.y + enemy.height <= platform.y + 10) {
-                                onPlatform = true;
-                            }
-                            
-                            // Check collision with wall
-                            if ((enemy.direction > 0 && 
-                                 enemy.x + enemy.width + 5 >= platform.x &&
-                                 enemy.x + enemy.width <= platform.x + 5 &&
-                                 enemy.y + enemy.height > platform.y &&
-                                 enemy.y < platform.y + platform.height) ||
-                                (enemy.direction < 0 && 
-                                 enemy.x - 5 <= platform.x + platform.width &&
-                                 enemy.x >= platform.x + platform.width - 5 &&
-                                 enemy.y + enemy.height > platform.y &&
-                                 enemy.y < platform.y + platform.height)) {
-                                hitWall = true;
-                            }
-                        }
-                        
-                        // Check for edge of current platform
-                        const aheadX = enemy.x + enemy.width + (10 * enemy.direction);
-                        const aheadY = enemy.y + enemy.height + 5;
-                        let aheadOnPlatform = false;
-                        
-                        for (const platform of platforms) {
-                            if (aheadX >= platform.x && 
-                                aheadX <= platform.x + platform.width &&
-                                aheadY >= platform.y &&
-                                aheadY <= platform.y + 10) {
-                                aheadOnPlatform = true;
-                            }
-                        }
-                        
-                        // Turn around at edges or walls
-                        if (!aheadOnPlatform || hitWall) {
-                            enemy.direction *= -1;
-                        }
-                        
-                        break;
-                    
-                    case 'flyer':
-                        // Flying enemy with sine wave pattern
-                        enemy.x += enemy.speed * enemy.direction * dt;
-                        
-                        // Calculate y position based on sine wave
-                        const time = Date.now() / 1000; // Time in seconds
-                        enemy.yOffset = Math.sin(time * enemy.frequency) * enemy.amplitude;
-                        
-                        // Bounce off screen edges
-                        if (enemy.x <= 0 || enemy.x + enemy.width >= GAME_WIDTH) {
-                            enemy.direction *= -1;
-                        }
-                        
-                        break;
-                        
-                    case 'jumper':
-                        // Apply gravity
-                        enemy.dy += GRAVITY * dt;
-                        enemy.y += enemy.dy * dt;
-                        
-                        // Horizontal movement
-                        enemy.x += enemy.speed * enemy.direction * dt;
-                        
-                        // Check platform collisions
-                        enemy.onGround = false;
-                        for (const platform of platforms) {
-                            if (enemy.x + enemy.width > platform.x &&
-                                enemy.x < platform.x + platform.width &&
-                                enemy.y + enemy.height > platform.y &&
-                                enemy.y + enemy.height < platform.y + platform.height) {
-                                enemy.y = platform.y - enemy.height;
-                                enemy.dy = 0;
-                                enemy.onGround = true;
-                            }
-                        }
-                        
-                        // Screen boundaries
-                        if (enemy.x <= 0 || enemy.x + enemy.width >= GAME_WIDTH) {
-                            enemy.direction *= -1;
-                        }
-                        
-                        // Jump logic
-                        if (enemy.onGround) {
-                            enemy.jumpCooldown -= dt;
-                            if (enemy.jumpCooldown <= 0) {
-                                enemy.dy = -enemy.jumpPower;
-                                enemy.jumpCooldown = enemy.jumpInterval;
-                                enemy.onGround = false;
-                            }
-                        }
-                        
-                        break;
-                        
-                    case 'thrower':
-                        // Projectile throwing enemy
-                        enemy.attackCooldown -= dt;
-                        
-                        // Face player
-                        if (player.x < enemy.x) {
-                            enemy.direction = -1;
-                        } else {
-                            enemy.direction = 1;
-                        }
-                        
-                        // Attack if cooldown expired and player is in range
-                        const distanceToPlayer = Math.abs(player.x - enemy.x);
-                        if (enemy.attackCooldown <= 0 && distanceToPlayer < 300) {
-                            // Calculate angle to player
-                            const dx = player.x + player.width/2 - (enemy.x + enemy.width/2);
-                            const dy = player.y + player.height/2 - (enemy.y + enemy.height/2);
-                            const angle = Math.atan2(dy, dx);
-                            
-                            // Create projectile
-                            projectiles.push({
-                                x: enemy.x + enemy.width/2,
-                                y: enemy.y + enemy.height/3,
-                                width: 15,
-                                height: 15,
-                                dx: Math.cos(angle) * 150,
-                                dy: Math.sin(angle) * 150,
-                                damage: 1,
-                                lifetime: 0,
-                                type: 'enemy_shuriken',
-                                fromPlayer: false
-                            });
-                            
-                            enemy.attackCooldown = enemy.attackInterval;
-                        }
-                        
-                        break;
-                    
-                    case 'boss':
-                        // Update invulnerability timer
-                        if (enemy.isInvulnerable) {
-                            enemy.invulnerableTimer -= dt;
-                            if (enemy.invulnerableTimer <= 0) {
-                                enemy.isInvulnerable = false;
-                            }
-                        }
-                        
-                        // CRITICAL FIX: Boss position tracking
-                        // Log every frame to catch when the boss is about to disappear
-                        console.log(`Boss tracking - x:${enemy.x.toFixed(1)}, y:${enemy.y.toFixed(1)}, phase:${enemy.attackPhase}, onGround:${enemy.onGround}, dy:${enemy.dy.toFixed(1)}`);
-                        
-                        // SUPER AGGRESSIVE BOUNDARY ENFORCEMENT
-                        // These bounds checks run EVERY FRAME regardless of phase
-                        const minX = 20;
-                        const maxX = GAME_WIDTH - enemy.width - 20;
-                        const minY = 20;
-                        const maxY = GAME_HEIGHT - enemy.height - 20;
-                        
-                        // Forcefully clamp the boss position within these bounds
-                        if (enemy.x < minX) enemy.x = minX;
-                        if (enemy.x > maxX) enemy.x = maxX;
-                        if (enemy.y < minY) enemy.y = minY;
-                        if (enemy.y > maxY) enemy.y = maxY;
-                        
-                        // Failsafe to ensure boss is always on screen
-                        if (enemy.y > GAME_HEIGHT || enemy.y < 0 || enemy.x > GAME_WIDTH || enemy.x < 0) {
-                            console.log("FAILSAFE: Boss was outside screen bounds! Resetting position.");
-                            // If boss somehow goes off screen, force it back to a visible position
-                            if (enemy.attackPhase === 2) {
-                                // If in projectile phase, place at one of the corners
-                                enemy.currentCorner = enemy.currentCorner || 'topLeft';
-                                const cornerPos = {
-                                    topLeft: {x: 50, y: 80},
-                                    topRight: {x: GAME_WIDTH - enemy.width - 50, y: 80}
-                                }[enemy.currentCorner];
-                                enemy.x = cornerPos.x;
-                                enemy.y = cornerPos.y;
-                            } else {
-                                // If in other phases, place at center of stage
-                                enemy.x = GAME_WIDTH/2 - enemy.width/2;
-                                enemy.y = GAME_HEIGHT - enemy.height - 50;
-                            }
-                            enemy.dy = 0; // Reset vertical momentum
-                        }
-                        
-                        // Phase timer
-                        enemy.phaseTimer -= dt;
-
-                        if (enemy.phaseTimer <= 0) {
-                            // Previous phase
-                            const oldPhase = enemy.attackPhase;
-                            
-                            // Change to next attack phase
-                            enemy.attackPhase = (enemy.attackPhase + 1) % 3;
-                            enemy.phaseTimer = 4; // 4 seconds per phase
-                            enemy.isInvulnerable = false;
-                            
-                            // Reset currentCorner when changing phases
-                            if (enemy.attackPhase !== 2) {
-                                enemy.currentCorner = null;
-                            }
-                            
-                            // Create intense thunder effect for phase transition
-                            screenFlash.active = true;
-                            screenFlash.duration = 0.4;
-                            screenFlash.intensity = 0.8;
-                            
-                            // Generate multiple lightning bolts for dramatic effect
-                            lightning.active = true;
-                            lightning.timer = 0;
-                            lightning.bolts = [];
-                            
-                            // Create 3-5 lightning bolts
-                            const numBolts = Math.floor(Math.random() * 3) + 3;
-                            for (let i = 0; i < numBolts; i++) {
-                                const startX = Math.random() * GAME_WIDTH;
-                                
-                                lightning.bolts.push({
-                                    startX: startX,
-                                    startY: 0,
-                                    endY: GAME_HEIGHT * (0.5 + Math.random() * 0.5),
-                                    width: 2 + Math.random() * 3,
-                                    segmentLength: 10 + Math.random() * 20,
-                                    jitter: 40 + Math.random() * 60
-                                });
-                            }
-                            
-                            console.log(`Boss phase changed: ${oldPhase} -> ${enemy.attackPhase} with thunder effect`);
-                            
-                            // Visual effect when entering projectile phase
-                            if (enemy.attackPhase === 2) {
-                                console.log("Boss entering projectile phase!");
-                                // Create effect particles
-                                for (let i = 0; i < 20; i++) {
-                                    particles.push({
-                                        x: enemy.x + enemy.width/2,
-                                        y: enemy.y + enemy.height/2,
-                                        dx: (Math.random() - 0.5) * 100,
-                                        dy: (Math.random() - 0.5) * 100,
-                                        size: 4 + Math.random() * 4,
-                                        color: COLORS.white,
-                                        lifetime: 0,
-                                        maxLifetime: 0.8
-                                    });
-                                }
-                            }
-                        }
-                        
-                        // Flash timer for damage indication
-                        if (enemy.flashTimer > 0) {
-                            enemy.flashTimer -= dt;
-                        }
-                        
-                        // Boss behavior based on attack phase
-                        switch(enemy.attackPhase) {
-                            case 0: // Ground attack phase - chase player
-                                if (enemy.onGround) {
-                                    // Move towards player
-                                    enemy.direction = player.x < enemy.x ? -1 : 1;
-                                    enemy.x += enemy.speed * enemy.direction * dt;
-                                    
-                                    // Occasionally release a shockwave
-                                    if (Math.random() < 0.01) {
-                                        // Create ground shockwaves
-                                        for (let dir = -1; dir <= 1; dir += 2) {
-                                            projectiles.push({
-                                                x: enemy.x + enemy.width/2,
-                                                y: GAME_HEIGHT - 50,
-                                                width: 30,
-                                                height: 10,
-                                                dx: dir * 200,
-                                                dy: 0,
-                                                damage: 1,
-                                                lifetime: 0,
-                                                type: 'shockwave',
-                                                fromPlayer: false
-                                            });
-                                        }
-                                    }
-                                }
-                                break;
-                                
-                            case 1: // Jump attack phase
-                                if (enemy.onGround && enemy.phaseTimer < 3.5) {
-                                    // Jump towards player
-                                    enemy.dy = -enemy.jumpPower;
-                                    enemy.onGround = false;
-                                    enemy.direction = player.x < enemy.x ? -1 : 1;
-                                    
-                                    // Aim jump to land near player
-                                    const distanceToPlayer = player.x - enemy.x;
-                                    const jumpDistance = enemy.jumpPower * 0.3; // Adjust as needed
-                                    enemy.dx = Math.min(Math.max(distanceToPlayer * 0.5, -jumpDistance), jumpDistance);
-                                }
-                                
-                                // While in air, generate falling projectiles
-                                if (!enemy.onGround && Math.random() < 0.05) {
-                                    projectiles.push({
-                                        x: Math.random() * (GAME_WIDTH - 20),
-                                        y: 0,
-                                        width: 20,
-                                        height: 20,
-                                        dx: 0,
-                                        dy: 200 + Math.random() * 100,
-                                        damage: 1,
-                                        lifetime: 0,
-                                        type: 'energyBall',
-                                        fromPlayer: false
-                                    });
-                                }
-                                
-                                // Apply gravity
-                                enemy.dy += GRAVITY * dt;
-                                enemy.x += enemy.dx * dt;
-                                enemy.y += enemy.dy * dt;
-                                
-                                // Check platform collisions
-                                enemy.onGround = false;
-                                for (const platform of platforms) {
-                                    if (enemy.x + enemy.width > platform.x &&
-                                        enemy.x < platform.x + platform.width &&
-                                        enemy.y + enemy.height > platform.y &&
-                                        enemy.y + enemy.height < platform.y + platform.height) {
-                                        enemy.y = platform.y - enemy.height;
-                                        enemy.dy = 0;
-                                        enemy.onGround = true;
-                                        
-                                        // Create landing shockwave
-                                        if (enemy.dy > 200) {
-                                            for (let dir = -1; dir <= 1; dir += 1) {
-                                                projectiles.push({
-                                                    x: enemy.x + enemy.width/2,
-                                                    y: enemy.y + enemy.height - 10,
-                                                    width: 40,
-                                                    height: 10,
-                                                    dx: dir * 150,
-                                                    dy: 0,
-                                                    damage: 1,
-                                                    lifetime: 0,
-                                                    type: 'shockwave',
-                                                    fromPlayer: false
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                // Screen boundaries
-                                if (enemy.x < 0) enemy.x = 0;
-                                if (enemy.x + enemy.width > GAME_WIDTH) enemy.x = GAME_WIDTH - enemy.width;
-                                if (enemy.y + enemy.height > GAME_HEIGHT) {
-                                    enemy.y = GAME_HEIGHT - enemy.height;
-                                    enemy.dy = 0;
-                                    enemy.onGround = true;
-                                }
-                                break;
-                                
-                            case 2: // Projectile barrage phase
-                                // Make boss fly to a corner and fire projectiles in patterns
-                                enemy.onGround = false; // Boss is always in the air during this phase
-                                
-                                // COMPLETE POSITION OVERRIDE SYSTEM FOR PROJECTILE PHASE
-                                // This completely takes over position control during this phase
-                                
-                                // Initialize corner position if not set
-                                if (!enemy.currentCorner) {
-                                    enemy.currentCorner = Math.random() < 0.5 ? 'topLeft' : 'topRight';
-                                    console.log("Boss initialized corner:", enemy.currentCorner);
-                                }
-                                
-                                // Define corner positions with VERY conservative bounds
-                                const cornerPositions = {
-                                    topLeft: {x: 80, y: 100},
-                                    topRight: {x: GAME_WIDTH - enemy.width - 80, y: 100}
-                                };
-                                
-                                // Target position based on current corner
-                                const targetX = cornerPositions[enemy.currentCorner].x;
-                                const targetY = cornerPositions[enemy.currentCorner].y;
-                                
-                                // Calculate distance to target
-                                const dx = targetX - enemy.x;
-                                const dy = targetY - enemy.y;
-                                const distance = Math.sqrt(dx * dx + dy * dy);
-                                
-                                // Move towards the target corner
-                                const moveSpeed = 150;
-                                
-                                if (distance > 5) {
-                                    // Normal movement when far from target
-                                    enemy.x += (dx / distance) * moveSpeed * dt;
-                                    enemy.y += (dy / distance) * moveSpeed * dt;
-                                } else {
-                                    // When at target, make small hovering movements
-                                    enemy.x = targetX + Math.sin(Date.now() / 500) * 5;
-                                    enemy.y = targetY + Math.sin(Date.now() / 700) * 5;
-                                }
-                                
-                                // CRITICAL: Cancel ALL physics effects
-                                enemy.dy = 0;
-                                enemy.dx = 0;
-                                
-                                // Switch corners less frequently (only 0.5% chance per frame)
-                                if (Math.random() < 0.005 * dt) {
-                                    enemy.currentCorner = enemy.currentCorner === 'topLeft' ? 'topRight' : 'topLeft';
-                                    console.log("Boss switched corner to:", enemy.currentCorner);
-                                }
-                                
-                                // Fire projectiles in patterns
-                                if (enemy.phaseTimer < 3.8 && enemy.phaseTimer % 0.5 < 0.05) {
-                                    // Fire projectiles in a pattern
-                                    const projectileCount = 5; // Number of projectiles in the barrage
-                                    
-                                    // Create spiral pattern
-                                    for (let i = 0; i < projectileCount; i++) {
-                                        const angle = (i / projectileCount) * Math.PI * 2 + enemy.phaseTimer;
-                                        projectiles.push({
-                                            x: enemy.x + enemy.width/2,
-                                            y: enemy.y + enemy.height/2,
-                                            width: 15,
-                                            height: 15,
-                                            dx: Math.cos(angle) * 150,
-                                            dy: Math.sin(angle) * 150,
-                                            damage: 1,
-                                            lifetime: 0,
-                                            type: 'energyBall',
-                                            fromPlayer: false
-                                        });
-                                    }
-                                }
-                                
-                                // Boss is vulnerable during this phase
-                                enemy.isInvulnerable = false;
-                                
-                                // Very strict screen boundaries check to ensure boss doesn't go off-screen
-                                if (enemy.x < 20) {
-                                    enemy.x = 20;
-                                    console.log("Boss hit left boundary");
-                                }
-                                if (enemy.x + enemy.width > GAME_WIDTH - 20) {
-                                    enemy.x = GAME_WIDTH - enemy.width - 20;
-                                    console.log("Boss hit right boundary");
-                                }
-                                if (enemy.y < 20) {
-                                    enemy.y = 20;
-                                    console.log("Boss hit top boundary");
-                                }
-                                if (enemy.y > GAME_HEIGHT / 3) {
-                                    enemy.y = GAME_HEIGHT / 3;
-                                    console.log("Boss hit bottom boundary");
-                                }
-                                
-                                // Double-check that corner is still set
-                                if (!enemy.currentCorner) {
-                                    console.log("Boss lost corner tracking! Resetting to topLeft");
-                                    enemy.currentCorner = 'topLeft';
-                                }
-                                
-                                // Log boss position to debug disappearance issue
-                                console.log(`Boss position: x=${enemy.x.toFixed(1)}, y=${enemy.y.toFixed(1)}, corner=${enemy.currentCorner}`);
-                                
-                                break;
-                        }
-                        break;
-                }
-                
-                // Check if enemy is dead
-                if (enemy.health <= 0) {
-                    // Log boss death
-                    if (enemy.type === 'boss') {
-                        console.log("Boss is being removed, health is now zero");
-                    }
-                    
-                    // Add death animation/particles
-                    createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
-                    
-                    // Add score
-                    if (enemy.type === 'boss') {
-                        console.log("Boss defeated! Health was:", enemy.health);
-                        // Boss death - big explosion and high score
-                        for (let i = 0; i < 5; i++) {
-                            setTimeout(() => {
-                                createExplosion(
-                                    enemy.x + Math.random() * enemy.width,
-                                    enemy.y + Math.random() * enemy.height
-                                );
-                            }, i * 200);
-                        }
-                        player.score += 5000;
-                        
-                        // Clear all projectiles immediately
-                        projectiles = [];
-                        
-                        // Player completed the game - immediate transition to game complete
-                        gameState = 'game_complete';
-                        
-                        // Remove enemy immediately
-                        enemies.splice(i, 1);
-                        return; // Exit the loop to prevent further processing
-                    } else {
-                        player.score += 100;
-                        
-                        // Remove regular enemy
-                        enemies.splice(i, 1);
-                    }
-                }
-            }
-        }
-        
-        // Function to create explosion particles
-        function createExplosion(x, y) {
-            // Create blood particles - reduced quantity
-            for (let i = 0; i < 8; i++) { // Reduced from 20 to 8
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 40 + Math.random() * 50; // Reduced speed
-                const size = 2 + Math.random() * 3; // Smaller size
-                
-                particles.push({
-                    x: x,
-                    y: y,
-                    dx: Math.cos(angle) * speed,
-                    dy: Math.sin(angle) * speed,
-                    size: size,
-                    color: '#BB5555', // Lighter, less intense red
-                    lifetime: 0,
-                    maxLifetime: 0.4 + Math.random() * 0.4, // Shorter lifetime
-                    isBlood: true
-                });
-            }
-            
-            // Create a blood splatter pattern - reduced
-            for (let i = 0; i < 3; i++) { // Reduced from 8 to 3
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 5 + Math.random() * 15; // Smaller distance
-                const splatterX = x + Math.cos(angle) * distance;
-                const splatterY = y + Math.sin(angle) * distance;
-                
-                // Create blood pool - smaller and shorter-lived
-                particles.push({
-                    x: splatterX,
-                    y: splatterY,
-                    dx: Math.cos(angle) * 5,
-                    dy: Math.sin(angle) * 5 + 10, // Less movement
-                    size: 3 + Math.random() * 4, // Smaller pools
-                    color: '#BB5555', // Lighter red
-                    lifetime: 0,
-                    maxLifetime: 0.8 + Math.random() * 0.5, // Shorter lifetime
-                    isBlood: true,
-                    isPool: true
-                });
-            }
-        }
-        
-        // Function to check collisions
-        function checkCollisions() {
-            // Player projectiles against enemies
-            for (let i = projectiles.length - 1; i >= 0; i--) {
-                const proj = projectiles[i];
-                
-                // Only check player projectiles
-                if (proj.fromPlayer) {
-                    for (let j = enemies.length - 1; j >= 0; j--) {
-                        const enemy = enemies[j];
-                        
-                        // Simple collision detection
-                        if (proj.x < enemy.x + enemy.width &&
-                            proj.x + proj.width > enemy.x &&
-                            proj.y < enemy.y + enemy.height &&
-                            proj.y + proj.height > enemy.y) {
-                            
-                            // Special handling for boss - check invulnerability
-                            if (enemy.type === 'boss' && enemy.isInvulnerable) {
-                                console.log("Boss deflected a projectile (invulnerable)");
-                                // Boss is invulnerable - create deflect effect
-                                for (let k = 0; k < 3; k++) {
-                                    particles.push({
-                                        x: proj.x,
-                                        y: proj.y,
-                                        dx: -proj.dx * 0.5 + (Math.random() - 0.5) * 20,
-                                        dy: (Math.random() - 0.5) * 20,
-                                        size: 2 + Math.random() * 2,
-                                        color: COLORS.white,
-                                        lifetime: 0,
-                                        maxLifetime: 0.2
-                                    });
-                                }
-                                // Remove projectile
-                                projectiles.splice(i, 1);
-                                break;
-                            }
-                            
-                            // Damage enemy if not an invulnerable boss
-                            if (enemy.type === 'boss') {
-                                console.log("Boss hit by projectile before damage:", enemy.health);
-                            }
-                            
-                            // Only damage if it's not a boss that's invulnerable
-                            if (!(enemy.type === 'boss' && enemy.isInvulnerable)) {
-                                // Only damage enemies with positive health
-                                if (enemy.health > 0) {
-                                    enemy.health--;
-                                    
-                                    // Set boss invulnerability and flash effect
-                                    if (enemy.type === 'boss') {
-                                        console.log("Boss hit! Health remaining:", enemy.health);
-                                        enemy.isInvulnerable = true;
-                                        enemy.invulnerableTimer = 0.5;
-                                        enemy.flashTimer = 0.5;
-                                        
-                                        // If boss is in projectile phase (phase 2), force return to ground attacks
-                                        if (enemy.attackPhase === 2) {
-                                            console.log("Boss hit during projectile phase! Returning to ground attacks.");
-                                            enemy.attackPhase = 0; // Return to ground attacks (phase 0)
-                                            enemy.phaseTimer = 4; // Reset phase timer
-                                            enemy.onGround = false; // Will fall back down
-                                            enemy.dy = 100; // Slight downward momentum
-                                            enemy.currentCorner = null; // Reset corner selection
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // Create small hit effect
-                            for (let k = 0; k < 6; k++) { // Reduced from 12 to 6
-                                particles.push({
-                                    x: proj.x,
-                                    y: proj.y,
-                                    dx: (Math.random() - 0.5) * 15 + (proj.dx * 0.2), // Less momentum
-                                    dy: Math.random() * 25 + 5, // Less vertical movement
-                                    size: 2 + Math.random() * 2, // Smaller size
-                                    color: '#BB5555', // Lighter red
-                                    lifetime: 0,
-                                    maxLifetime: 0.3 + Math.random() * 0.3, // Shorter lifetime
-                                    isBlood: true // Mark as blood particle for special rendering
-                                });
-                            }
-                            
-                            // Remove projectile
-                            projectiles.splice(i, 1);
-                            break;
-                        }
-                    }
-                } else {
-                    // Enemy projectiles against player
-                    if (proj.x < player.x + player.width &&
-                        proj.x + proj.width > player.x &&
-                        proj.y < player.y + player.height &&
-                        proj.y + proj.height > player.y &&
-                        player.invulnerable <= 0) {
-                        
-                        // Damage player
-                        player.health--;
-                        player.invulnerable = 1.5; // 1.5 second invulnerability
-                        
-                        // Knockback effect
-                        const knockbackDir = player.x < enemy.x ? -1 : 1;
-                        player.dx = knockbackDir * 150;
-                        player.dy = -200;
-                        
-                        // Create hit effect
-                        for (let k = 0; k < 5; k++) { // Reduced from 10 to 5
-                            particles.push({
-                                x: player.x + player.width/2,
-                                y: player.y + player.height/2,
-                                dx: (Math.random() - 0.5) * 25, // Reduced spread
-                                dy: Math.random() * 20 + 5, // Less vertical movement
-                                size: 1 + Math.random() * 3, // Smaller size
-                                color: '#BB5555', // Lighter red
-                                lifetime: 0,
-                                maxLifetime: 0.3 + Math.random() * 0.3, // Shorter lifetime
-                                isBlood: true // Mark as blood particle for special rendering
-                            });
-                        }
-                        
-                        break;
-                    }
-                }
-            }
-            
-            // Player collision with enemies
-            if (player.invulnerable <= 0) {
-                for (const enemy of enemies) {
-                    if (player.x < enemy.x + enemy.width &&
-                        player.x + player.width > enemy.x &&
-                        player.y < enemy.y + enemy.height &&
-                        player.y + player.height > enemy.y) {
-                        
-                        // Special handling for boss
-                        if (enemy.type === 'boss') {
-                            console.log("Player collided with boss");
-                            // Player jumped on boss head - damage boss instead
-                            if (player.dy > 0 && player.y + player.height < enemy.y + enemy.height/2) {
-                                console.log("Player jumped on boss head, invulnerable:", enemy.isInvulnerable);
-                                
-                                // Only damage the boss if it's not currently invulnerable
-                                if (!enemy.isInvulnerable && enemy.health > 0) {
-                                    console.log("Damaging boss from head jump");
-                                    enemy.health--;
-                                    console.log("Boss head hit! Health remaining:", enemy.health);
-                                    
-                                    // Set boss flash effect
-                                    enemy.isInvulnerable = true;
-                                    enemy.invulnerableTimer = 0.5;
-                                    enemy.flashTimer = 0.5;
-                                    
-                                    // Create hit effect
-                                    for (let k = 0; k < 5; k++) { // Reduced from 10 to 5
-                                        particles.push({
-                                            x: enemy.x + Math.random() * enemy.width,
-                                            y: enemy.y + Math.random() * enemy.height/4, // Focus on head area
-                                            dx: (Math.random() - 0.5) * 25, // Reduced spread
-                                            dy: Math.random() * 20 + 5, // Less vertical movement
-                                            size: 1 + Math.random() * 3, // Smaller size
-                                            color: '#BB5555', // Lighter red
-                                            lifetime: 0,
-                                            maxLifetime: 0.3 + Math.random() * 0.3, // Shorter lifetime
-                                            isBlood: true // Mark as blood particle for special rendering
-                                        });
-                                    }
-                                } else {
-                                    console.log("Boss blocked head jump (invulnerable)");
-                                }
-                                
-                                // Set the player to jump off the boss
-                                player.dy = -350;
-                                continue; // Skip the rest of damage code
-                            }
-                        }
-                        
-                        // Damage player
-                        player.health--;
-                        player.invulnerable = 1.5; // 1.5 second invulnerability
-                        
-                        break;
-                    }
-                }
-            }
         }
     </script>
 </body>
