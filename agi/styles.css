@@ -1,0 +1,103 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    font-family: 'Courier New', Courier, monospace;
+    color: #fff; /* White text for black-and-white scheme */
+    overflow: hidden;
+    position: relative; /* For vibration effect */
+}
+
+.terminal {
+    padding: 20px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align content to the top */
+}
+
+.terminal-content {
+    text-align: left;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align text to the top */
+    align-items: flex-start; /* Align text and cursor to the top-left */
+}
+
+.terminal-log {
+    font-size: 16px;
+    white-space: pre-wrap;
+    margin: 0; /* Remove any default margins */
+    padding: 0;
+    position: relative; /* For cursor positioning */
+}
+
+.cursor {
+    animation: blink 1s step-end infinite;
+    display: inline-block; /* Ensure cursor stays inline with text */
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+.eye {
+    max-width: 400px; /* Bigger eye image */
+    margin-top: 20px; /* Space between text/cursor and eye */
+    display: block; /* Ensure image centers properly */
+    margin-left: auto; /* Center the image horizontally */
+    margin-right: auto; /* Center the image horizontally */
+}
+
+.terminal-footer {
+    position: absolute;
+    bottom: 30px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-top: auto; /* Push footer to the bottom */
+}
+
+.about-page {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 10%; /* Higher on the screen */
+    left: 0;
+    width: 90%;
+    height: 80vh; /* Slightly less height to fit higher */
+    background-color: #000;
+    padding: 20px;
+    z-index: 1000;
+    overflow: auto;
+}
+
+.about-text {
+    font-size: 16px;
+    white-space: pre-wrap;
+    color: #fff;
+}
+
+/* Enhanced vibration animations */
+@keyframes vibrate {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-3px, 3px); }
+    40% { transform: translate(3px, -3px); }
+    60% { transform: translate(-3px, -3px); }
+    80% { transform: translate(3px, 3px); }
+    100% { transform: translate(0, 0); }
+}
+
+.vibrate, .eye-vibrate {
+    animation: vibrate 0.2s; /* Increased duration for more noticeable effect */
+    will-change: transform; /* Improve performance for animations */
+}
+
+a {
+    color: blue;
+}
+
+#coffee {
+    color: yellow;
+}

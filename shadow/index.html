@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Ninja</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #102010;
+            font-family: monospace;
+            color: #e0f8e0;
+            overflow: hidden;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+        }
+        
+        canvas {
+            border: 4px solid #306630;
+            background-color: #8bac8b;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #instructions {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            text-align: center;
+            background-color: #306630;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .key-control {
+            margin-right: 10px;
+            background-color: #8bac8b;
+            padding: 3px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        /* Mobile controls */
+        #mobile-controls {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            height: 180px;
+            position: relative;
+            margin-top: 10px;
+            touch-action: none;
+        }
+        
+        .control-button {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background-color: #306630;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e0f8e0;
+            font-weight: bold;
+            font-size: 24px;
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            border: 2px solid #224422;
+        }
+        
+        #left-button {
+            left: 30px;
+            top: 45px;
+        }
+        
+        #right-button {
+            left: 140px;
+            top: 45px;
+        }
+        
+        #jump-button {
+            right: 140px;
+            top: 45px;
+        }
+        
+        #attack-button {
+            right: 30px;
+            top: 45px;
+        }
+        
+        /* Media query for mobile devices */
+        @media (max-width: 820px) {
+            #game-container {
+                width: 95%;
+                height: auto;
+                aspect-ratio: 4/3;
+            }
+            
+            canvas {
+                width: 100%;
+                height: 100%;
+            }
+            
+            #mobile-controls {
+                display: block;
+            }
+            
+            .keyboard-controls {
+                display: none;
+            }
+            
+            .mobile-controls-text {
+                display: block;
+            }
+        }
+        
+        /* For wider screens */
+        @media (min-width: 821px) {
+            .mobile-controls-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>SHADOW NINJA</h1>
+    
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+    
+    <div id="mobile-controls">
+        <div id="left-button" class="control-button">←</div>
+        <div id="right-button" class="control-button">→</div>
+        <div id="jump-button" class="control-button">Z</div>
+        <div id="attack-button" class="control-button">X</div>
+    </div>
+    
+    <div id="instructions">
+        <div class="keyboard-controls">
+            <span class="key-control">←→</span> Move
+            <span class="key-control">Z</span> Jump
+            <span class="key-control">X</span> Attack
+            <span class="key-control">↑ + WALL</span> Wall Jump
+        </div>
+        <div class="mobile-controls-text">
+            Use the on-screen buttons to play!<br>
+            Touch the left/right buttons to move, Z to jump, X to attack.
+        </div>
+    </div>
+    
+    <script>
+        // Touch controls handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create a global object to track touch controls
+            window.touchControls = {
+                left: false,
+                right: false,
+                jump: false,
+                attack: false
+            };
+            
+            // Helper function to handle button touches
+            function setupTouchButton(id, controlKey) {
+                const button = document.getElementById(id);
+                
+                button.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    touchControls[controlKey] = true;
+                    button.style.backgroundColor = '#8bac8b';
+                });
+                
+                button.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    touchControls[controlKey] = false;
+                    button.style.backgroundColor = '#306630';
+                });
+                
+                // Prevent default behavior to avoid scrolling
+                button.addEventListener('touchmove', function(e) {
+                    e.preventDefault();
+                });
+            }
+            
+            // Setup all buttons
+            setupTouchButton('left-button', 'left');
+            setupTouchButton('right-button', 'right');
+            setupTouchButton('jump-button', 'jump');
+            setupTouchButton('attack-button', 'attack');
+            
+            // Make the keyboard controls work as virtual key presses
+            window.addEventListener('keydown', function(e) {
+                switch(e.key) {
+                    case 'ArrowLeft': 
+                        keys.ArrowLeft = true;
+                        break;
+                    case 'ArrowRight': 
+                        keys.ArrowRight = true;
+                        break;
+                    case 'z':
+                    case 'Z': 
+                        keys.z = true;
+                        break;
+                    case 'x':
+                    case 'X': 
+                        keys.x = true;
+                        break;
+                    case ' ': 
+                        keys[' '] = true;
+                        break;
+                }
+            });
+            
+            window.addEventListener('keyup', function(e) {
+                switch(e.key) {
+                    case 'ArrowLeft': 
+                        keys.ArrowLeft = false;
+                        break;
+                    case 'ArrowRight': 
+                        keys.ArrowRight = false;
+                        break;
+                    case 'z':
+                    case 'Z': 
+                        keys.z = false;
+                        break;
+                    case 'x':
+                    case 'X': 
+                        keys.x = false;
+                        break;
+                    case ' ': 
+                        keys[' '] = false;
+                        break;
+                }
+            });
+            
+            // Handle touch controls in game loop
+            const gameLoop = function() {
+                // Map touch controls to key presses
+                if (window.keys) {
+                    keys.ArrowLeft = keys.ArrowLeft || touchControls.left;
+                    keys.ArrowRight = keys.ArrowRight || touchControls.right;
+                    keys.z = keys.z || touchControls.jump;
+                    keys.x = keys.x || touchControls.attack;
+                }
+                
+                requestAnimationFrame(gameLoop);
+            };
+            
+            gameLoop();
+        });
+    </script>
+    
+    <script>
+        // Define colors based on GameBoy palette
+        const COLORS = {
+            black: '#0f0f0f',
+            darkGray: '#306630',
+            lightGray: '#8bac8b',
+            white: '#e0f8e0',
+            bg: '#8bac8b'
+        };
+
+        // Constants
+        const GRAVITY = 800;
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 600;
+
+        // Game state variables
+        let gameState = 'start_screen';
+        let stage = 1;
+        let canvas, ctx;
+        let player, platforms, enemies, projectiles, particles;
+        let lastTime = 0;
+        let keys = {};
+
+        // Initialize when the window loads
+        window.onload = function() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Initialize keys
+            window.keys = keys = {};
+            
+            // Set up event listeners for keyboard
+            window.addEventListener('keydown', function(e) {
+                keys[e.key] = true;
+            });
+            
+            window.addEventListener('keyup', function(e) {
+                keys[e.key] = false;
+            });
+            
+            // Initialize game objects
+            resetGame();
+            
+            // Start game loop
+            lastTime = performance.now();
+            requestAnimationFrame(update);
+        };
+
+        // Basic game loop
+        function update() {
+            // Request next frame
+            requestAnimationFrame(update);
+            
+            // Get time since last frame
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000; // Convert to seconds
+            lastTime = now;
+            
+            // Process input
+            if (gameState === 'start_screen' && (keys[' '] || keys.Space)) {
+                gameState = 'playing';
+            }
+            
+            // Clear canvas
+            ctx.fillStyle = COLORS.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw based on game state
+            if (gameState === 'start_screen') {
+                drawStartScreen();
+            } else if (gameState === 'playing') {
+                // Handle inputs
+                handleInput(dt);
+                
+                // Update physics
+                updatePhysics(dt);
+                
+                // Update player state
+                updatePlayerState(dt);
+                
+                // Draw background
+                drawBackground();
+                
+                // Draw platforms
+                platforms.forEach(platform => {
+                    drawPlatform(platform);
+                });
+                
+                // Draw enemies
+                enemies.forEach(enemy => {
+                    drawEnemy(enemy);
+                });
+                
+                // Draw projectiles
+                projectiles.forEach(projectile => {
+                    drawProjectile(projectile);
+                });
+                
+                // Draw player
+                drawPlayer();
+                
+                // Draw particles
+                particles.forEach(particle => {
+                    drawParticle(particle);
+                });
+                
+                // Draw UI elements
+                drawUI();
+                
+                // Check for player death
+                if (player.health <= 0) {
+                    gameState = 'game_over';
+                }
+            } else if (gameState === 'game_over') {
+                drawGameOverScreen();
+            }
+        }
+
+        // Function to draw the start screen
+        function drawStartScreen() {
+            // Title screen
+            // Background
+            ctx.fillStyle = COLORS.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Title text with shadow
+            ctx.fillStyle = COLORS.black;
+            ctx.font = '46px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('SHADOW NINJA', canvas.width/2 + 3, canvas.height/3 + 3);
+            
+            ctx.fillStyle = COLORS.white;
+            ctx.fillText('SHADOW NINJA', canvas.width/2, canvas.height/3);
+            
+            // Instructions
+            ctx.font = '18px monospace';
+            ctx.fillStyle = COLORS.white;
+            ctx.textAlign = 'center';
+            
+            // Controls info
+            const instructions = [
+                'CONTROLS:',
+                'Arrow Keys: Move',
+                'Z: Jump',
+                'X: Attack',
+                'Press SPACE to Start'
+            ];
+            
+            for (let i = 0; i < instructions.length; i++) {
+                ctx.fillText(instructions[i], canvas.width/2, canvas.height/2 + i * 30);
+            }
+            
+            // Blinking Press Start text
+            if (Math.floor(Date.now() / 500) % 2 === 0) {
+                ctx.font = '24px monospace';
+                ctx.fillText('PRESS SPACE TO START', canvas.width/2, canvas.height - 60);
+            }
+        }
+        
+        // Function to reset the game state for a new game
+        function resetGame() {
+            // Create player
+            player = {
+                x: 50,
+                y: 200,
+                width: 30,
+                height: 50,
+                dx: 0,
+                dy: 0,
+                speed: 200,
+                jumpStrength: 400,
+                health: 6,
+                maxHealth: 6,
+                score: 0,
+                state: 'idle',
+                facing: 1,
+                canJump: true,
+                attacking: false,
+                attackTimer: 0,
+                invulnerable: 0,
+                wallSliding: false
+            };
+            
+            // Initialize collections
+            platforms = [];
+            enemies = [];
+            projectiles = [];
+            particles = [];
+            
+            // Set up the stage
+            stage = 1;
+            loadStage(stage);
+        }
+        
+        // Load a specific stage
+        function loadStage(stageNum) {
+            // Clear existing entities
+            platforms = [];
+            enemies = [];
+            projectiles = [];
+            particles = [];
+            
+            // Set up platforms
+            switch(stageNum) {
+                case 1:
+                    // Stage 1: Basic level with some platforms
+                    
+                    // Ground
+                    platforms.push({
+                        x: 0,
+                        y: GAME_HEIGHT - 40,
+                        width: GAME_WIDTH,
+                        height: 40,
+                        type: 'normal'
+                    });
+                    
+                    // Platforms
+                    platforms.push({
+                        x: 100,
+                        y: GAME_HEIGHT - 120,
+                        width: 200,
+                        height: 20,
+                        type: 'normal'
+                    });
+                    
+                    platforms.push({
+                        x: 400,
+                        y: GAME_HEIGHT - 180,
+                        width: 200,
+                        height: 20,
+                        type: 'normal'
+                    });
+                    
+                    platforms.push({
+                        x: 650,
+                        y: GAME_HEIGHT - 150,
+                        width: 150,
+                        height: 20,
+                        type: 'normal'
+                    });
+                    
+                    // Walls for wall jumping
+                    platforms.push({
+                        x: 300,
+                        y: GAME_HEIGHT - 220,
+                        width: 20,
+                        height: 100,
+                        type: 'normal'
+                    });
+                    
+                    platforms.push({
+                        x: 600,
+                        y: GAME_HEIGHT - 220,
+                        width: 20,
+                        height: 100,
+                        type: 'normal'
+                    });
+                    
+                    break;
+            }
+            
+            // Reset player position
+            player.x = 50;
+            player.y = GAME_HEIGHT - 200;
+            player.health = player.maxHealth;
+        }
+        
+        // Handle user input
+        function handleInput(dt) {
+            // Reset speed first
+            player.dx = 0;
+            
+            // Left/Right movement
+            if (keys.ArrowLeft) {
+                player.dx = -player.speed;
+                player.facing = -1;
+                player.state = player.canJump ? 'run' : player.state;
+            } else if (keys.ArrowRight) {
+                player.dx = player.speed;
+                player.facing = 1;
+                player.state = player.canJump ? 'run' : player.state;
+            } else if (player.canJump) {
+                player.state = 'idle';
+            }
+            
+            // Jump
+            if ((keys.ArrowUp || keys.z) && player.canJump) {
+                player.dy = -player.jumpStrength;
+                player.canJump = false;
+                player.state = 'jump';
+            }
+            
+            // Attack
+            if (keys.x && !player.attacking) {
+                player.attacking = true;
+                player.attackTimer = 0;
+                
+                // Create shuriken projectile
+                projectiles.push({
+                    x: player.x + (player.facing > 0 ? player.width : 0),
+                    y: player.y + player.height/2 - 5,
+                    width: 10,
+                    height: 10,
+                    dx: player.facing * 300,
+                    dy: 0,
+                    damage: 1,
+                    lifetime: 0,
+                    type: 'shuriken',
+                    fromPlayer: true
+                });
+            }
+        }
+        
+        // Helper function to update physics
+        function updatePhysics(dt) {
+            // Apply gravity to player
+            player.dy += GRAVITY * dt;
+            
+            // Player movement
+            player.x += player.dx * dt;
+            player.y += player.dy * dt;
+            
+            // Wall jumping logic
+            player.wallSliding = false;
+            
+            // Check platform collisions
+            for (let platform of platforms) {
+                // Platform collision detection
+                if (player.x + player.width > platform.x &&
+                    player.x < platform.x + platform.width &&
+                    player.y + player.height > platform.y &&
+                    player.y < platform.y + platform.height) {
+                    
+                    // Coming from above (landing)
+                    if (player.y + player.height - player.dy <= platform.y) {
+                        player.y = platform.y - player.height;
+                        player.dy = 0;
+                        player.canJump = true;
+                    }
+                    // Coming from below (hitting ceiling)
+                    else if (player.y - player.dy >= platform.y + platform.height) {
+                        player.y = platform.y + platform.height;
+                        player.dy = 0;
+                    }
+                    // Coming from left (hitting wall)
+                    else if (player.x + player.width - player.dx <= platform.x) {
+                        player.x = platform.x - player.width;
+                        player.dx = 0;
+                        
+                        // Wall sliding
+                        if (!player.canJump && player.dy > 0) {
+                            player.wallSliding = true;
+                            player.dy = Math.min(player.dy, 80); // Slow fall when wall sliding
+                        }
+                    }
+                    // Coming from right (hitting wall)
+                    else if (player.x - player.dx >= platform.x + platform.width) {
+                        player.x = platform.x + platform.width;
+                        player.dx = 0;
+                        
+                        // Wall sliding
+                        if (!player.canJump && player.dy > 0) {
+                            player.wallSliding = true;
+                            player.dy = Math.min(player.dy, 80); // Slow fall when wall sliding
+                        }
+                    }
+                }
+            }
+            
+            // Screen boundaries
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            if (player.y < 0) player.y = 0;
+            if (player.y + player.height > canvas.height) {
+                player.y = canvas.height - player.height;
+                player.dy = 0;
+                player.canJump = true;
+            }
+            
+            // Update projectiles
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const proj = projectiles[i];
+                
+                // Update position
+                proj.x += proj.dx * dt;
+                proj.y += proj.dy * dt;
+                
+                // Update lifetime
+                proj.lifetime += dt;
+                
+                // Remove if off screen or too old
+                if (proj.x < -50 || proj.x > canvas.width + 50 || 
+                    proj.y < -50 || proj.y > canvas.height + 50 ||
+                    proj.lifetime > 3) {
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+        
+        // Helper function to update player state
+        function updatePlayerState(dt) {
+            // Handle invulnerability timer
+            if (player.invulnerable > 0) {
+                player.invulnerable -= dt;
+            }
+            
+            // Handle attack timer
+            if (player.attacking) {
+                player.attackTimer += dt;
+                if (player.attackTimer > 0.3) { // Attack duration
+                    player.attacking = false;
+                    player.attackTimer = 0;
+                }
+            }
+            
+            // Check if player is falling
+            if (player.dy > 0 && !player.canJump) {
+                player.state = 'jump';
+            }
+        }
+        
+        // Function to draw a platform
+        function drawPlatform(platform) {
+            ctx.fillStyle = COLORS.darkGray;
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            
+            // Add highlights
+            ctx.fillStyle = COLORS.lightGray;
+            ctx.fillRect(platform.x, platform.y, platform.width, 5);
+        }
+        
+        // Function to draw background elements
+        function drawBackground() {
+            // Draw sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+            gradient.addColorStop(0, COLORS.bg);
+            gradient.addColorStop(1, COLORS.darkGray);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            
+            // Draw cityscape silhouette
+            ctx.fillStyle = COLORS.black;
+            
+            // Draw buildings
+            for (let i = 0; i < 10; i++) {
+                const buildingWidth = 60 + (i * 20) % 40;
+                const buildingHeight = 100 + (i * 30) % 120;
+                const x = i * 100 - 20;
+                
+                // Building silhouette
+                ctx.fillRect(x, GAME_HEIGHT - buildingHeight, buildingWidth, buildingHeight);
+                
+                // Windows (lit up)
+                ctx.fillStyle = COLORS.white;
+                const windowSize = 5;
+                const windowSpacing = 15;
+                
+                for (let wy = 0; wy < Math.floor(buildingHeight / windowSpacing) - 1; wy++) {
+                    for (let wx = 0; wx < Math.floor(buildingWidth / windowSpacing); wx++) {
+                        // Only draw some windows (random pattern but consistent)
+                        if ((wx + wy + i) % 3 !== 0) {
+                            ctx.fillRect(
+                                x + wx * windowSpacing + 5,
+                                GAME_HEIGHT - buildingHeight + wy * windowSpacing + 15,
+                                windowSize,
+                                windowSize
+                            );
+                        }
+                    }
+                }
+                
+                ctx.fillStyle = COLORS.black;
+            }
+            
+            // Draw moon
+            ctx.fillStyle = COLORS.white;
+            ctx.beginPath();
+            ctx.arc(100, 80, 40, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Moon craters
+            ctx.fillStyle = COLORS.lightGray;
+            ctx.beginPath();
+            ctx.arc(110, 70, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(80, 90, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Function to draw the player
+        function drawPlayer() {
+            // Draw with slight transparency if invulnerable
+            if (player.invulnerable > 0 && Math.floor(Date.now() / 100) % 2 === 0) {
+                ctx.globalAlpha = 0.5;
+            }
+            
+            // Body
+            ctx.fillStyle = COLORS.black;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Head (mask)
+            ctx.fillStyle = COLORS.white;
+            ctx.fillRect(
+                player.x + (player.facing > 0 ? player.width/4 : player.width/4),
+                player.y,
+                player.width/2,
+                player.height/4
+            );
+            
+            // Eyes
+            ctx.fillStyle = COLORS.black;
+            ctx.fillRect(
+                player.x + (player.facing > 0 ? player.width*3/5 : player.width/5),
+                player.y + player.height/10,
+                player.width/10,
+                player.height/20
+            );
+            
+            // Draw scarf
+            ctx.fillStyle = COLORS.white;
+            const scarfWave = Math.sin(Date.now() * 0.01) * 3;
+            
+            ctx.beginPath();
+            ctx.moveTo(
+                player.x + (player.facing > 0 ? 0 : player.width),
+                player.y + player.height/4
+            );
+            ctx.lineTo(
+                player.x + (player.facing > 0 ? -10 : player.width + 10),
+                player.y + player.height/4 + scarfWave
+            );
+            ctx.lineTo(
+                player.x + (player.facing > 0 ? -5 : player.width + 5),
+                player.y + player.height/2 + scarfWave
+            );
+            ctx.lineTo(
+                player.x + (player.facing > 0 ? 5 : player.width - 5),
+                player.y + player.height/3
+            );
+            ctx.fill();
+            
+            // Reset alpha
+            ctx.globalAlpha = 1;
+        }
+        
+        // Function to draw projectiles
+        function drawProjectile(projectile) {
+            if (projectile.fromPlayer) {
+                // Player projectile (shuriken)
+                ctx.fillStyle = COLORS.white;
+                
+                const size = projectile.width;
+                const x = projectile.x;
+                const y = projectile.y;
+                
+                // Draw shuriken 
+                ctx.beginPath();
+                ctx.moveTo(x, y - size/2);
+                ctx.lineTo(x + size/2, y);
+                ctx.lineTo(x, y + size/2);
+                ctx.lineTo(x - size/2, y);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Center circle
+                ctx.beginPath();
+                ctx.arc(x, y, size/6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Function to draw enemy (placeholder)
+        function drawEnemy(enemy) {
+            // Will implement later
+        }
+        
+        // Function to draw particle (placeholder)
+        function drawParticle(particle) {
+            // Will implement later
+        }
+        
+        // Function to draw UI
+        function drawUI() {
+            // Draw player health
+            const blockSize = 10;
+            const blockSpacing = 12;
+            const topMargin = 40;
+            
+            // LIFE label
+            ctx.fillStyle = COLORS.white;
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText('LIFE:', 10, topMargin);
+            
+            // Health blocks
+            for (let i = 0; i < player.maxHealth; i++) {
+                ctx.fillStyle = i < player.health ? COLORS.white : COLORS.darkGray;
+                ctx.fillRect(60 + (i * blockSpacing), topMargin - blockSize, blockSize, blockSize);
+                ctx.strokeStyle = COLORS.black;
+                ctx.strokeRect(60 + (i * blockSpacing), topMargin - blockSize, blockSize, blockSize);
+            }
+            
+            // Score
+            ctx.fillStyle = COLORS.white;
+            ctx.font = '16px monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText(`SCORE: ${player.score.toString().padStart(6, '0')}`, canvas.width - 10, 20);
+        }
+        
+        // Function to draw Game Over screen
+        function drawGameOverScreen() {
+            // Dark overlay
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Game Over text
+            ctx.fillStyle = COLORS.white;
+            ctx.font = '30px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
+            
+            // Score display
+            ctx.font = '16px monospace';
+            ctx.fillText(`FINAL SCORE: ${player.score.toString().padStart(6, '0')}`, canvas.width/2, canvas.height/2 + 20);
+            
+            // Continue text that blinks
+            if (Math.floor(Date.now() / 500) % 2 === 0) {
+                ctx.fillText('PRESS SPACE TO CONTINUE', canvas.width/2, canvas.height/2 + 60);
+            }
+            
+            // Handle restart
+            if (keys[' '] || keys.Space) {
+                resetGame();
+                gameState = 'playing';
+            }
+        }
+    </script>
+</body>
+</html>
