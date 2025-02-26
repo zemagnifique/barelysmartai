@@ -602,7 +602,7 @@ function loadStage(stageNum) {
     // Reset player position
     player.x = 50;
     player.y = GAME_HEIGHT - 200;
-    player.health = player.maxHealth;
+    // player.health = player.maxHealth;
 }
 
 // Helper function to update physics
