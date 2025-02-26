@@ -581,7 +581,13 @@
                 wallJumps: 0, // Track consecutive wall jumps
                 maxWallJumps: 5, // Maximum consecutive wall jumps allowed
                 wallJumpCooldown: 0, // Cooldown between wall jumps
-                currentCorner: null
+                currentCorner: null,
+                
+                // Shuriken system
+                shurikenCount: 5, // Current number of shurikens available
+                maxShurikens: 5, // Maximum number of shurikens
+                shurikenReloadTimer: 0, // Timer for reloading shurikens
+                shurikenReloadTime: 2 // Time in seconds to reload one shuriken
             };
             
             // Initialize collections
@@ -911,22 +917,26 @@
             
             // Attack
             if (keys.x && !player.attacking) {
-                player.attacking = true;
-                player.attackTimer = 0;
-                
-                // Create shuriken projectile
-                projectiles.push({
-                    x: player.x + (player.facing > 0 ? player.width : 0),
-                    y: player.y + player.height/2 - 5,
-                    width: 10,
-                    height: 10,
-                    dx: player.facing * 300,
-                    dy: 0,
-                    damage: 1,
-                    lifetime: 0,
-                    type: 'shuriken',
-                    fromPlayer: true
-                });
+                // Only allow attack if player has shurikens available
+                if (player.shurikenCount > 0) {
+                    player.attacking = true;
+                    player.attackTimer = 0;
+                    player.shurikenCount--; // Use one shuriken
+                    
+                    // Create shuriken projectile
+                    projectiles.push({
+                        x: player.x + (player.facing > 0 ? player.width : 0),
+                        y: player.y + player.height/2 - 5,
+                        width: 10,
+                        height: 10,
+                        dx: player.facing * 300,
+                        dy: 0,
+                        damage: 1,
+                        lifetime: 0,
+                        type: 'shuriken',
+                        fromPlayer: true
+                    });
+                }
             }
         }
         
@@ -1151,6 +1161,17 @@
                 if (player.attackTimer > 0.3) { // Attack duration
                     player.attacking = false;
                     player.attackTimer = 0;
+                }
+            }
+            
+            // Handle shuriken reloading
+            if (player.shurikenCount < player.maxShurikens) {
+                player.shurikenReloadTimer += dt;
+                
+                // When reload timer reaches reload time, add a shuriken
+                if (player.shurikenReloadTimer >= player.shurikenReloadTime) {
+                    player.shurikenCount++;
+                    player.shurikenReloadTimer = 0; // Reset timer
                 }
             }
             
@@ -2659,12 +2680,13 @@
         
         // Function to draw UI
         function drawUI() {
-            // Draw player health
+            // Constants for positioning
             const blockSize = 10;
             const blockSpacing = 12;
             const topMargin = 40;
+            const starSize = blockSize * 1.2; // Slightly larger for stars
             
-            // LIFE label
+            // LIFE label - now first
             ctx.fillStyle = COLORS.white;
             ctx.font = '12px monospace';
             ctx.textAlign = 'left';
@@ -2678,11 +2700,83 @@
                 ctx.strokeRect(60 + (i * blockSpacing), topMargin - blockSize, blockSize, blockSize);
             }
             
+            // Position where health ends - will be used for shuriken position
+            const healthWidth = (player.maxHealth * blockSpacing) + 10;
+            const shurikenStartX = 60 + healthWidth + 10; // Add some spacing between health and shurikens
+            
+            // Draw available shurikens as yellow stars - no label, just stars
+            for (let i = 0; i < player.maxShurikens; i++) {
+                const starX = shurikenStartX + (i * blockSpacing) + blockSize/2;
+                const starY = topMargin - blockSize/2;
+                
+                // Draw star outline for all possible slots
+                ctx.strokeStyle = COLORS.white;
+                drawStar(starX, starY, 5, starSize/2, starSize/4, false, '#333333');
+                
+                // Fill in the available shurikens as yellow stars
+                if (i < player.shurikenCount) {
+                    drawStar(starX, starY, 5, starSize/2, starSize/4, true, '#FFCC00');
+                }
+            }
+            
+            // Draw reload progress for the next shuriken if not full
+            if (player.shurikenCount < player.maxShurikens) {
+                const reloadProgress = player.shurikenReloadTimer / player.shurikenReloadTime;
+                const starX = shurikenStartX + (player.shurikenCount * blockSpacing) + blockSize/2;
+                const starY = topMargin - blockSize/2;
+                
+                // Draw partially filled star to show progress
+                if (reloadProgress > 0) {
+                    ctx.save();
+                    ctx.beginPath();
+                    // Create a clipping region based on reload progress
+                    ctx.rect(starX - starSize/2, starY - starSize/2, 
+                             starSize * reloadProgress, starSize);
+                    ctx.clip();
+                    // Draw the filled star within the clipping region
+                    drawStar(starX, starY, 5, starSize/2, starSize/4, true, '#FFCC00');
+                    ctx.restore();
+                }
+            }
+            
             // Score
             ctx.fillStyle = COLORS.white;
             ctx.font = '16px monospace';
             ctx.textAlign = 'right';
             ctx.fillText(`SCORE: ${player.score.toString().padStart(6, '0')}`, canvas.width - 10, 20);
+        }
+        
+        // Helper function to draw a star shape
+        function drawStar(cx, cy, spikes, outerRadius, innerRadius, fill, color) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+            
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+                
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            
+            if (fill) {
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+            ctx.strokeStyle = COLORS.white;
+            ctx.stroke();
         }
         
         // Function to draw Game Over screen
