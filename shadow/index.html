@@ -905,19 +905,7 @@
                     player.wallJumps++;
                     player.wallJumpCooldown = 0.15; // Short cooldown between wall jumps
                     
-                    // Create wall jump effect
-                    for (let i = 0; i < 5; i++) {
-                        particles.push({
-                            x: player.x + (player.wallDirection < 0 ? player.width : 0),
-                            y: player.y + player.height/2 + (Math.random() - 0.5) * 20,
-                            dx: player.wallDirection * (20 + Math.random() * 20),
-                            dy: (Math.random() - 0.5) * 40,
-                            size: 2 + Math.random() * 3,
-                            color: COLORS.white,
-                            lifetime: 0,
-                            maxLifetime: 0.3
-                        });
-                    }
+                    // REMOVED: Wall jump particle effect has been removed
                 }
             }
             
@@ -1363,7 +1351,7 @@
                 ctx.arc(0, 0, player.width/4, 0.5 * Math.PI, 1.5 * Math.PI, false);
                 ctx.stroke();
                 
-                // Scarf trailing behind based on rotation
+                // Add flowing scarf trailing behind based on rotation
                 ctx.fillStyle = COLORS.white;
                 const scarfAngle = Math.PI + (Date.now() * 0.005) % (Math.PI * 2);
                 const scarfLength = player.width/2;
@@ -1386,44 +1374,7 @@
                 
                 ctx.fill();
                 
-                // Add spin motion lines
-                const spinLines = 8;
-                ctx.strokeStyle = COLORS.white;
-                ctx.lineWidth = 1;
-                
-                for (let i = 0; i < spinLines; i++) {
-                    const angle = (i / spinLines) * Math.PI * 2;
-                    const innerRadius = player.width/2 + 2;
-                    const outerRadius = player.width/2 + 8 + Math.sin(Date.now() * 0.01 + i) * 3;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(
-                        Math.cos(angle) * innerRadius,
-                        Math.sin(angle) * innerRadius
-                    );
-                    ctx.lineTo(
-                        Math.cos(angle) * outerRadius,
-                        Math.sin(angle) * outerRadius
-                    );
-                    ctx.stroke();
-                }
-                
-                // Add trail particles when spinning
-                if (Math.random() < 0.3) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const radius = player.width/2 + 2;
-                    
-                    particles.push({
-                        x: centerX + Math.cos(angle) * radius,
-                        y: centerY + Math.sin(angle) * radius,
-                        dx: Math.cos(angle) * 20 * (Math.random() + 0.5),
-                        dy: Math.sin(angle) * 20 * (Math.random() + 0.5),
-                        size: 2 + Math.random() * 2,
-                        color: COLORS.white,
-                        lifetime: 0,
-                        maxLifetime: 0.3
-                    });
-                }
+                // REMOVED: Spin motion lines have been removed to avoid looking like a sword
                 
                 // Restore context after ball drawing
                 ctx.restore();
@@ -1568,6 +1519,7 @@
                 let scarfWave = Math.sin(Date.now() * 0.01) * 3;
                 let scarfLength = 15;
                 
+                // Show scarf in all states, including jumping
                 if (player.dx !== 0) {
                     // Running scarf - flows behind more dramatically
                     scarfLength = 20;
@@ -1576,8 +1528,13 @@
                     // Wall climbing scarf - points downward
                     scarfLength = 15;
                     scarfWave = Math.sin(Date.now() * 0.008) * 4;
+                } else if (!player.canJump) {
+                    // Jumping scarf - more dynamic flowing
+                    scarfLength = 25;
+                    scarfWave = Math.sin(Date.now() * 0.02) * 8;
                 }
                 
+                // Always draw the scarf, even when jumping
                 ctx.beginPath();
                 ctx.moveTo(
                     player.x + (player.facing > 0 ? player.width/4 : player.width*3/4),
@@ -1649,30 +1606,43 @@
         // Function to draw projectiles
         function drawProjectile(projectile) {
             if (projectile.fromPlayer) {
-                // Player projectile (shuriken)
-                ctx.fillStyle = COLORS.white;
+                // Player projectile (yellow star-shaped shuriken)
+                ctx.fillStyle = '#FFDD00'; // Bright yellow
                 
                 const size = projectile.width;
                 const x = projectile.x;
                 const y = projectile.y;
                 
-                // Draw shuriken with rotation
+                // Draw star with rotation
                 const rotationAngle = projectile.lifetime * 15; // Rotate based on lifetime
                 
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate(rotationAngle);
                 
-                // Draw the shuriken shape
+                // Draw 5-point star
+                const outerRadius = size/2;
+                const innerRadius = outerRadius * 0.4;
+                const spikes = 5;
+                
                 ctx.beginPath();
-                ctx.moveTo(0, -size/2);
-                ctx.lineTo(size/2, 0);
-                ctx.lineTo(0, size/2);
-                ctx.lineTo(-size/2, 0);
+                for (let i = 0; i < spikes * 2; i++) {
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    const angle = (Math.PI / spikes) * i;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
                 ctx.closePath();
                 ctx.fill();
                 
-                // Center circle
+                // Add a small center circle
+                ctx.fillStyle = '#FF8800'; // Darker orange center
                 ctx.beginPath();
                 ctx.arc(0, 0, size/6, 0, Math.PI * 2);
                 ctx.fill();
