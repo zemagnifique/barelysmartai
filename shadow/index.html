@@ -86,8 +86,15 @@
             font-size: 24px;
             user-select: none;
             touch-action: none;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-            border: 2px solid #224422;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border: 3px solid #224422;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
+        }
+        
+        .control-button:active {
+            background-color: #8bac8b;
+            transform: scale(0.95);
         }
         
         #left-button {
@@ -110,6 +117,18 @@
             top: 45px;
         }
         
+        #space-button {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px !important;
+            border-radius: 25px !important;
+            height: 60px !important;
+            z-index: 100;
+            font-size: 22px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        
         /* Media query for mobile devices */
         @media (max-width: 820px) {
             #game-container {
@@ -125,6 +144,7 @@
             
             #mobile-controls {
                 display: block;
+                height: 200px;
             }
             
             .keyboard-controls {
@@ -133,6 +153,33 @@
             
             .mobile-controls-text {
                 display: block;
+            }
+            
+            /* Make buttons bigger on small screens */
+            .control-button {
+                width: 70px;
+                height: 70px;
+            }
+            
+            /* Adjust mobile control positioning for smaller screens */
+            #left-button {
+                left: 15px;
+                top: 45px;
+            }
+            
+            #right-button {
+                left: 105px;
+                top: 45px;
+            }
+            
+            #jump-button {
+                right: 105px;
+                top: 45px;
+            }
+            
+            #attack-button {
+                right: 15px;
+                top: 45px;
             }
         }
         
@@ -195,11 +242,13 @@
         <button id="download-btn" style="background:#4CAF50; color:white; border:none; padding:10px 20px; margin:0 5px; font-size:16px; border-radius:5px; cursor:pointer;">Download Screenshot</button>
     </div>
     
+    <!-- Mobile controls container -->
     <div id="mobile-controls">
         <div id="left-button" class="control-button">←</div>
         <div id="right-button" class="control-button">→</div>
         <div id="jump-button" class="control-button">Z</div>
         <div id="attack-button" class="control-button">X</div>
+        <div id="space-button" class="control-button" style="bottom: 10px; left: 50%; transform: translateX(-50%); width: 180px; border-radius: 25px; position: absolute;">START</div>
     </div>
     
     <div id="instructions">
@@ -229,29 +278,86 @@
                 left: false,
                 right: false,
                 jump: false,
-                attack: false
+                attack: false,
+                space: false
             };
             
-            // Helper function to handle button touches
+            // Track active touches by identifier
+            const activeTouches = {};
+            
+            // Helper function to handle button touches with multi-touch support
             function setupTouchButton(id, controlKey) {
                 const button = document.getElementById(id);
                 
                 button.addEventListener('touchstart', function(e) {
                     e.preventDefault();
+                    
+                    // Store each touch by identifier
+                    for (let i = 0; i < e.changedTouches.length; i++) {
+                        const touch = e.changedTouches[i];
+                        activeTouches[touch.identifier] = { element: button, control: controlKey };
+                    }
+                    
                     touchControls[controlKey] = true;
                     button.style.backgroundColor = '#8bac8b';
                 });
                 
                 button.addEventListener('touchend', function(e) {
                     e.preventDefault();
-                    touchControls[controlKey] = false;
-                    button.style.backgroundColor = '#306630';
+                    
+                    // Remove ended touches
+                    for (let i = 0; i < e.changedTouches.length; i++) {
+                        const touch = e.changedTouches[i];
+                        if (activeTouches[touch.identifier] && activeTouches[touch.identifier].element === button) {
+                            delete activeTouches[touch.identifier];
+                        }
+                    }
+                    
+                    // Check if any other touches are still active on this button
+                    let stillActive = false;
+                    for (const id in activeTouches) {
+                        if (activeTouches[id].element === button) {
+                            stillActive = true;
+                            break;
+                        }
+                    }
+                    
+                    // Only deactivate if no touches remain on this button
+                    if (!stillActive) {
+                        touchControls[controlKey] = false;
+                        button.style.backgroundColor = '#306630';
+                    }
                 });
                 
-                // Prevent default behavior to avoid scrolling
+                // Handle touch moves (in case finger moves out of button area)
                 button.addEventListener('touchmove', function(e) {
                     e.preventDefault();
                 });
+            }
+            
+            // Show mobile controls on smaller screens or touch devices
+            function detectTouchDevice() {
+                if (('ontouchstart' in window) || window.innerWidth <= 820) {
+                    document.getElementById('mobile-controls').style.display = 'block';
+                    // Adjust space button visibility based on game state
+                    updateSpaceButtonVisibility();
+                }
+            }
+            
+            // Function to update space button visibility based on game state
+            function updateSpaceButtonVisibility() {
+                const spaceButton = document.getElementById('space-button');
+                
+                if (window.gameState === 'start_screen') {
+                    spaceButton.innerText = 'START';
+                    spaceButton.style.display = 'flex';
+                } else if (window.gameState === 'gameOver' || window.gameState === 'gameComplete') {
+                    spaceButton.innerText = 'RESTART';
+                    spaceButton.style.display = 'flex';
+                } else if (window.gameState === 'playing') {
+                    // Hide the space button during gameplay
+                    spaceButton.style.display = 'none';
+                }
             }
             
             // Setup all buttons
@@ -259,6 +365,7 @@
             setupTouchButton('right-button', 'right');
             setupTouchButton('jump-button', 'jump');
             setupTouchButton('attack-button', 'attack');
+            setupTouchButton('space-button', 'space');
             
             // Make the keyboard controls work as virtual key presses
             window.addEventListener('keydown', function(e) {
@@ -313,10 +420,19 @@
                     keys.ArrowRight = keys.ArrowRight || touchControls.right;
                     keys.z = keys.z || touchControls.jump;
                     keys.x = keys.x || touchControls.attack;
+                    keys[' '] = keys[' '] || touchControls.space;
+                }
+                
+                // Update space button visibility
+                if (window.gameState) {
+                    updateSpaceButtonVisibility();
                 }
                 
                 requestAnimationFrame(gameLoop);
             };
+            
+            // Detect touch device on page load
+            detectTouchDevice();
             
             gameLoop();
         });
@@ -3947,11 +4063,31 @@
             // Twitter share button
             twitterBtn.addEventListener('click', function() {
                 const score = window.player && window.player.score ? window.player.score : 0;
+                const shareText = `I scored ${score} points in Shadow Ninja! Can you beat that?`;
+                const shareUrl = encodeURIComponent(window.location.href);
+                const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${shareUrl}`;
+                window.open(twitterUrl, '_blank');
+            });
+            
+            // Download screenshot button
+            downloadBtn.addEventListener('click', function() {
+                // Wait for the next animation frame to ensure the canvas is fully rendered
+                setTimeout(function() {
+                    try {
+                        const dataUrl = canvas.toDataURL('image/png');
+                        const link = document.createElement('a');
+                        link.href = dataUrl;
+                        link.download = 'shadow-ninja-screenshot.png';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    } catch (e) {
                         console.error("Screenshot function not available");
                         alert("Sorry, the screenshot functionality is not available.");
                     }
-                });
-            }, 1000); // Wait 1 second for everything to load
+                }, 1000); // Wait 1 second for everything to load
+            });
+            
         });
     </script>
     
