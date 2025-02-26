@@ -295,6 +295,10 @@
         let lastTime = 0;
         let keys = {};
 
+        // Visual effects variables
+        let screenFlash = {active: false, duration: 0, intensity: 0};
+        let lightning = {active: false, timer: 0, nextStrike: Math.random() * 5 + 3, bolts: []};
+
         // Initialize when the window loads
         window.onload = function() {
             canvas = document.getElementById('gameCanvas');
@@ -338,6 +342,9 @@
             // Clear canvas
             ctx.fillStyle = COLORS.bg;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update visual effects
+            updateVisualEffects(dt);
             
             // Draw based on game state
             if (gameState === 'start_screen') {
@@ -431,6 +438,78 @@
                 drawGameOverScreen();
             } else if (gameState === 'game_complete') {
                 drawGameCompleteScreen();
+            }
+        }
+
+        // Function to update visual effects
+        function updateVisualEffects(dt) {
+            // Update screen flash effect (thunder)
+            if (screenFlash.active) {
+                screenFlash.duration -= dt;
+                
+                // Create fading effect
+                if (screenFlash.duration > 0.1) {
+                    screenFlash.intensity = Math.min(0.7, screenFlash.duration);
+                } else {
+                    screenFlash.intensity *= 0.8;
+                }
+                
+                // Deactivate when done
+                if (screenFlash.duration <= 0 || screenFlash.intensity < 0.05) {
+                    screenFlash.active = false;
+                }
+            }
+            
+            // Update lightning effect
+            lightning.timer += dt;
+            
+            // Check if it's time for a lightning strike
+            if (lightning.timer >= lightning.nextStrike) {
+                // Create new lightning bolts
+                createLightning();
+                
+                // Reset timer and set time for next strike (random interval)
+                lightning.timer = 0;
+                lightning.nextStrike = Math.random() * 8 + 4; // 4-12 seconds between strikes
+                
+                // Activate lightning
+                lightning.active = true;
+                
+                // Create thunder flash effect with slight delay
+                setTimeout(() => {
+                    screenFlash.active = true;
+                    screenFlash.duration = 0.2;
+                    screenFlash.intensity = 0.3;
+                }, Math.random() * 300 + 100); // 100-400ms delay
+            }
+            
+            // Deactivate lightning after short duration
+            if (lightning.active && lightning.timer > 0.2) {
+                lightning.active = false;
+                lightning.bolts = [];
+            }
+        }
+
+        // Function to create lightning
+        function createLightning() {
+            // Clear existing bolts
+            lightning.bolts = [];
+            
+            // Create 1-3 lightning bolts
+            const numBolts = Math.floor(Math.random() * 3) + 1;
+            
+            for (let i = 0; i < numBolts; i++) {
+                // Random starting position along the top of the screen
+                const startX = Math.random() * GAME_WIDTH;
+                
+                lightning.bolts.push({
+                    startX: startX,
+                    startY: 0,
+                    endY: GAME_HEIGHT * (0.3 + Math.random() * 0.5), // Random height
+                    width: 1 + Math.random() * 3,
+                    segmentLength: 10 + Math.random() * 20,
+                    jitter: 30 + Math.random() * 50
+                });
             }
         }
 
@@ -1063,6 +1142,54 @@
             ctx.beginPath();
             ctx.arc(80, 90, 5, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Draw lightning bolts if active
+            if (lightning.active && lightning.bolts.length > 0) {
+                for (const bolt of lightning.bolts) {
+                    drawLightningBolt(bolt);
+                }
+            }
+            
+            // Apply screen flash effect if active (thunder effect)
+            if (screenFlash.active) {
+                ctx.globalAlpha = screenFlash.intensity;
+                ctx.fillStyle = COLORS.black;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1.0;
+            }
+        }
+        
+        // Function to create and draw a lightning bolt
+        function drawLightningBolt(bolt) {
+            ctx.strokeStyle = COLORS.white;
+            ctx.lineWidth = bolt.width;
+            
+            ctx.beginPath();
+            ctx.moveTo(bolt.startX, bolt.startY);
+            
+            let currentX = bolt.startX;
+            let currentY = bolt.startY;
+            
+            // Create zig-zag pattern for lightning
+            while (currentY < bolt.endY) {
+                const nextY = currentY + bolt.segmentLength;
+                const nextX = currentX + (Math.random() - 0.5) * bolt.jitter;
+                
+                ctx.lineTo(nextX, nextY);
+                
+                currentX = nextX;
+                currentY = nextY;
+            }
+            
+            ctx.stroke();
+            
+            // Draw a glow around the lightning for effect
+            ctx.globalAlpha = 0.3;
+            ctx.strokeStyle = COLORS.lightGray;
+            ctx.lineWidth = bolt.width * 3;
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+            ctx.lineWidth = 1;
         }
         
         // Function to draw the player
@@ -1962,8 +2089,11 @@
                         
                         // Phase timer
                         enemy.phaseTimer -= dt;
-                        
+
                         if (enemy.phaseTimer <= 0) {
+                            // Previous phase
+                            const oldPhase = enemy.attackPhase;
+                            
                             // Change to next attack phase
                             enemy.attackPhase = (enemy.attackPhase + 1) % 3;
                             enemy.phaseTimer = 4; // 4 seconds per phase
@@ -1973,6 +2103,33 @@
                             if (enemy.attackPhase !== 2) {
                                 enemy.currentCorner = null;
                             }
+                            
+                            // Create intense thunder effect for phase transition
+                            screenFlash.active = true;
+                            screenFlash.duration = 0.4;
+                            screenFlash.intensity = 0.8;
+                            
+                            // Generate multiple lightning bolts for dramatic effect
+                            lightning.active = true;
+                            lightning.timer = 0;
+                            lightning.bolts = [];
+                            
+                            // Create 3-5 lightning bolts
+                            const numBolts = Math.floor(Math.random() * 3) + 3;
+                            for (let i = 0; i < numBolts; i++) {
+                                const startX = Math.random() * GAME_WIDTH;
+                                
+                                lightning.bolts.push({
+                                    startX: startX,
+                                    startY: 0,
+                                    endY: GAME_HEIGHT * (0.5 + Math.random() * 0.5),
+                                    width: 2 + Math.random() * 3,
+                                    segmentLength: 10 + Math.random() * 20,
+                                    jitter: 40 + Math.random() * 60
+                                });
+                            }
+                            
+                            console.log(`Boss phase changed: ${oldPhase} -> ${enemy.attackPhase} with thunder effect`);
                             
                             // Visual effect when entering projectile phase
                             if (enemy.attackPhase === 2) {
