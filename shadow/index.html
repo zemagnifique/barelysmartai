@@ -51,4 +51,42 @@
     <script src="touch.js"></script>
 </body>
    <script src="sharebutton.js"></script>
+   <audio id="bgMusic" loop></audio>
+    <script>
+    // Map your stages (or game states) to song URLs
+    const stageMusic = {
+        start: 'start.mp3',
+        1: 'stage1.mp3',
+        2: 'stage2.mp3',
+        3: 'stage3.mp3'
+    };
+
+    // Function to update and play the music for a given stage or game state
+    function playMusicForStage(stage) {
+        const audio = document.getElementById('bgMusic');
+        let src;
+        if (gameState === 'start_screen') {
+        src = "music/" + stageMusic.start;
+        } else {
+        src = "music/" + stageMusic[stage];
+        }
+        if (audio.src !== src) {
+        audio.src = src;
+        audio.load();
+        audio.play().catch(error => {
+            console.log("Playback prevented:", error);
+        });
+        }
+    }
+    
+    // Example: call this when your game state changes
+    document.addEventListener('DOMContentLoaded', function() {
+        // On start screen:
+        playMusicForStage('start');
+        
+        // Then, whenever you change stages (e.g., in loadStage or update),
+        // call playMusicForStage(stage) with the new stage number.
+    });
+    </script>
+
 </html>
