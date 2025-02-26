@@ -287,53 +287,96 @@
             
             // Helper function to handle button touches with multi-touch support
             function setupTouchButton(id, controlKey) {
-                const button = document.getElementById(id);
-                
-                button.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    
-                    // Store each touch by identifier
-                    for (let i = 0; i < e.changedTouches.length; i++) {
-                        const touch = e.changedTouches[i];
-                        activeTouches[touch.identifier] = { element: button, control: controlKey };
-                    }
-                    
-                    touchControls[controlKey] = true;
-                    button.style.backgroundColor = '#8bac8b';
-                });
-                
-                button.addEventListener('touchend', function(e) {
-                    e.preventDefault();
-                    
-                    // Remove ended touches
-                    for (let i = 0; i < e.changedTouches.length; i++) {
-                        const touch = e.changedTouches[i];
-                        if (activeTouches[touch.identifier] && activeTouches[touch.identifier].element === button) {
-                            delete activeTouches[touch.identifier];
-                        }
-                    }
-                    
-                    // Check if any other touches are still active on this button
-                    let stillActive = false;
-                    for (const id in activeTouches) {
-                        if (activeTouches[id].element === button) {
-                            stillActive = true;
-                            break;
-                        }
-                    }
-                    
-                    // Only deactivate if no touches remain on this button
-                    if (!stillActive) {
-                        touchControls[controlKey] = false;
-                        button.style.backgroundColor = '#306630';
-                    }
-                });
-                
-                // Handle touch moves (in case finger moves out of button area)
-                button.addEventListener('touchmove', function(e) {
-                    e.preventDefault();
-                });
+    const button = document.getElementById(id);
+    
+    button.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            activeTouches[touch.identifier] = { element: button, control: controlKey };
+        }
+        touchControls[controlKey] = true;
+        button.style.backgroundColor = '#8bac8b';
+    });
+    
+    function endTouch(e) {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            if (activeTouches[touch.identifier] && activeTouches[touch.identifier].element === button) {
+                delete activeTouches[touch.identifier];
             }
+        }
+        // Check if any touches remain on this button
+        let stillActive = false;
+        for (const id in activeTouches) {
+            if (activeTouches[id].element === button) {
+                stillActive = true;
+                break;
+            }
+        }
+        if (!stillActive) {
+            touchControls[controlKey] = false;
+            button.style.backgroundColor = '#306630';
+        }
+    }
+    
+    // Handle both touchend and touchcancel
+    button.addEventListener('touchend', endTouch);
+    button.addEventListener('touchcancel', endTouch);
+    
+    // Prevent default behavior during touch moves
+    button.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    });
+}
+
+
+            function setupTouchButton(id, controlKey) {
+    const button = document.getElementById(id);
+    
+    button.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            activeTouches[touch.identifier] = { element: button, control: controlKey };
+        }
+        touchControls[controlKey] = true;
+        button.style.backgroundColor = '#8bac8b';
+    });
+    
+    function endTouch(e) {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            if (activeTouches[touch.identifier] && activeTouches[touch.identifier].element === button) {
+                delete activeTouches[touch.identifier];
+            }
+        }
+        // Check if any touches remain on this button
+        let stillActive = false;
+        for (const id in activeTouches) {
+            if (activeTouches[id].element === button) {
+                stillActive = true;
+                break;
+            }
+        }
+        if (!stillActive) {
+            touchControls[controlKey] = false;
+            button.style.backgroundColor = '#306630';
+        }
+    }
+    
+    // Handle both touchend and touchcancel
+    button.addEventListener('touchend', endTouch);
+    button.addEventListener('touchcancel', endTouch);
+    
+    // Prevent default behavior during touch moves
+    button.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    });
+}
+
             
             // Show mobile controls on smaller screens or touch devices
             function detectTouchDevice() {
