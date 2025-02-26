@@ -95,15 +95,23 @@
         }
     </script>
     <script>
-      document.addEventListener('keydown', function startMusic(e) {
-        if(e.key == ' ') {
+        function startMusic(e) {
+            if (e.type === 'keydown' && e.key !== ' ') {
+                return;
+            }
+
             const audio = document.getElementById('bgMusic');
             // Remove muted so the audio will play with sound
             audio.volume = 0.2;
             audio.play().catch(error => console.log("Playback error:", error));
             document.removeEventListener('click', startMusic);
+            e.currentTarget.removeEventListener('click', startMusic);
+            
         }
-      });
+        // Add event listener for keyboard space key.
+        document.addEventListener('keydown', startMusic);
+        // Add event listener for the mobile on-screen space button.
+        document.getElementById('space-button').addEventListener('touchstart', startMusic);
     </script>
 
     <script>
