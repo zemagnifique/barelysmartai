@@ -291,7 +291,6 @@
                 
                 button.addEventListener('touchstart', function(e) {
                     e.preventDefault();
-                    e.stopPropagation();
                     
                     // Store each touch by identifier
                     for (let i = 0; i < e.changedTouches.length; i++) {
@@ -305,12 +304,11 @@
                 
                 button.addEventListener('touchend', function(e) {
                     e.preventDefault();
-                    e.stopPropagation();
                     
                     // Remove ended touches
                     for (let i = 0; i < e.changedTouches.length; i++) {
                         const touch = e.changedTouches[i];
-                        if (activeTouches[touch.identifier]) {
+                        if (activeTouches[touch.identifier] && activeTouches[touch.identifier].element === button) {
                             delete activeTouches[touch.identifier];
                         }
                     }
@@ -331,68 +329,9 @@
                     }
                 });
                 
-                button.addEventListener('touchcancel', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Remove cancelled touches
-                    for (let i = 0; i < e.changedTouches.length; i++) {
-                        const touch = e.changedTouches[i];
-                        if (activeTouches[touch.identifier]) {
-                            delete activeTouches[touch.identifier];
-                        }
-                    }
-                    
-                    // Check if any other touches are still active on this button
-                    let stillActive = false;
-                    for (const id in activeTouches) {
-                        if (activeTouches[id].element === button) {
-                            stillActive = true;
-                            break;
-                        }
-                    }
-                    
-                    // Only deactivate if no touches remain on this button
-                    if (!stillActive) {
-                        touchControls[controlKey] = false;
-                        button.style.backgroundColor = '#306630';
-                    }
-                });
-                
+                // Handle touch moves (in case finger moves out of button area)
                 button.addEventListener('touchmove', function(e) {
                     e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Check if touch has moved outside the button
-                    for (let i = 0; i < e.changedTouches.length; i++) {
-                        const touch = e.changedTouches[i];
-                        const rect = button.getBoundingClientRect();
-                        
-                        // If touch has moved outside the button
-                        if (touch.clientX < rect.left || touch.clientX > rect.right ||
-                            touch.clientY < rect.top || touch.clientY > rect.bottom) {
-                            
-                            // Remove this touch
-                            if (activeTouches[touch.identifier]) {
-                                delete activeTouches[touch.identifier];
-                            }
-                            
-                            // Check if any other touches are still active on this button
-                            let stillActive = false;
-                            for (const id in activeTouches) {
-                                if (activeTouches[id].element === button) {
-                                    stillActive = true;
-                                    break;
-                                }
-                            }
-                            
-                            // Only deactivate if no touches remain on this button
-                            if (!stillActive) {
-                                touchControls[controlKey] = false;
-                                button.style.backgroundColor = '#306630';
-                            }
-                        }
-                    }
                 });
             }
             
