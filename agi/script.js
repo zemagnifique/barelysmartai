@@ -1,4 +1,3 @@
-// Global keystroke handling and vibration effects
 document.addEventListener('DOMContentLoaded', () => {
     const terminalLog = document.querySelector('.terminal-log');
     const cursor = document.querySelector('.cursor');
@@ -12,13 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
         cursor.style.display = 'inline'; // Ensure cursor is visible
     }
 
-    // Handle global keystrokes
-    document.addEventListener('keypress', (event) => {
-        if (aboutPage && aboutPage.style.display === 'block') return; // Ignore keystrokes on About page
-
-        const input = event.key;
-        if (terminal && eye && terminalLog) { // Ensure elements exist before applying vibrations
-            // Apply vibration to both terminal and eye
+    // Vibration helper function
+    const vibrateElements = () => {
+        if (terminal && eye) {
             terminal.classList.add('vibrate');
             eye.classList.add('eye-vibrate');
             setTimeout(() => {
@@ -26,6 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 eye.classList.remove('eye-vibrate');
             }, 200); // Match the animation duration for consistency
         }
+    };
+
+    // Handle global keystrokes
+    document.addEventListener('keypress', (event) => {
+        // Ignore keystrokes when the About page is visible
+        if (aboutPage && aboutPage.style.display === 'block') return;
+
+        const input = event.key;
+        // Vibrate on keystroke
+        vibrateElements();
 
         if (input === 'Enter') {
             // Handle Enter key for commands
@@ -58,6 +63,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentText = terminalLog.textContent.trim().replace('█', '');
             terminalLog.textContent = currentText + input + '█';
         }
+    });
+
+    // Handle mouse clicks anywhere in the document
+    document.addEventListener('click', () => {
+        vibrateElements();
+    });
+
+    // Handle touch events (for mobile devices)
+    document.addEventListener('touchstart', () => {
+        vibrateElements();
     });
 
     // Handle About page click
