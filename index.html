@@ -1,394 +1,577 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <!-- viewport-fit=cover for modern devices -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>AI Crypto Oracle</title>
+  <meta charset="UTF-8" />
+  <title>Barely Smart AI</title>
+  <meta name="description" content=" Welcome to Barely Smart AI, where we boldly blur the line between brilliance 
+  and baffling. Our questionable AI agents are here to (almost) revolutionize 
+  the tech world—one glitch at a time." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="assets/favicon.png">
+
   <style>
-    html, body {
+    /* BASE RESET & TYPOGRAPHY */
+    * {
       margin: 0;
       padding: 0;
-      min-height: 100vh;
+      box-sizing: border-box;
+      font-family: "Helvetica Neue", Arial, sans-serif;
     }
     body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-      color: #00ffcc;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    /* Fixed header with matching background */
-    .nav {
-      position: fixed;
-      left: 0;
-      width: 100%;
-      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-      padding: 10px 20px;
-      z-index: 1000;
-      top: 0; /* initial top offset */
-      transition: top 0.3s ease;
-    }
-    .nav a {
-      color: #00ffcc;
-      text-decoration: none;
-      font-size: 1em;
-      margin-right: 20px;
-      text-transform: uppercase;
-      text-shadow: 0 0 5px #00ffcc;
-    }
-    .nav a:hover {
-      color: #33ffdd;
-      text-shadow: 0 0 8px #00ffcc;
-    }
-    /* Main container centers content in remaining viewport space */
-    .main-container {
-      margin-top: 60px; /* space for header */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: calc(100vh - 60px);
-      width: 100%;
-    }
-    .content {
-      text-align: center;
-      max-width: 600px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    h1 {
-      font-size: 2.5em;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow: 0 0 5px #00ffcc;
-      margin-bottom: 10px;
-    }
-    p {
-      font-size: 1em;
-      color: #66ffcc;
-      text-align: center;
-      margin: 0 0 20px;
+      background-color: #fafafa;
+      color: #333;
       line-height: 1.5;
+      transition: background-color 0.3s, color 0.3s; /* Smooth theme transition */
     }
-    /* Default layout for larger screens */
-    .input-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-      flex-wrap: nowrap;
+    a {
+      color:#d44dd6; //#0077ff;
+      text-decoration: none;
     }
-    input[type="text"] {
-      padding: 12px 20px;
-      font-size: 1.1em;
-      flex: 1;
-      min-width: 250px;
-      max-width: 300px;
-      border: 2px solid #00ffcc;
-      border-radius: 25px;
-      background: #1a1a1a;
-      color: #fff;
-      margin-right: 10px;
-      outline: none;
-      box-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
-      transition: box-shadow 0.3s ease;
-    }
-    input[type="text"]:focus {
-      box-shadow: 0 0 12px rgba(0, 255, 204, 0.8);
-    }
-    button {
-      padding: 12px 25px;
-      font-size: 1.1em;
-      background: #00ffcc;
-      color: #1a1a1a;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      text-transform: uppercase;
-      box-shadow: 0 0 8px #00ffcc;
-      transition: box-shadow 0.3s ease, background 0.3s ease;
-    }
-    button:hover {
-      background: #33ffdd;
-      box-shadow: 0 0 12px #00ffcc;
-    }
-    #loading {
-      margin-top: 20px;
-      font-size: 1.2em;
-      color: #66ffcc;
-      text-shadow: 0 0 5px #00ffcc;
-      display: none;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 1.5em;
-      color: #ff3366;
-      text-shadow: 0 0 8px #ff3366;
-      display: none;
-      text-align: center;
-    }
-    #shareLink {
-      margin-top: 15px;
-      font-size: 1em;
-      color: #00ffcc;
-      display: none;
-      cursor: pointer;
+    a:hover {
       text-decoration: underline;
     }
-    #shareLink:hover {
-      color: #33ffdd;
-      text-shadow: 0 0 8px #00ffcc;
+
+    /* DARK MODE STYLES */
+    body.dark-mode {
+      background-color: #1b1b1b;
+      color: #f2f2f2;
     }
-    .pulse {
-      animation: pulse 1.5s infinite;
+    body.dark-mode header {
+      background: #333;
     }
-    @keyframes pulse {
-      0% { opacity: 0.7; }
-      50% { opacity: 1; }
-      100% { opacity: 0.7; }
+    body.dark-mode .hero {
+      background: linear-gradient(135deg, #444 0%, #666 100%);
+      color: #fff;
     }
-    #coinImage {
+    body.dark-mode .agent-card {
+      background: #444;
+      color: #fff;
+    }
+    body.dark-mode footer {
+      background: #333;
+      color: #ddd;
+    }
+    body.dark-mode .moon-icon svg {
+      fill: #f2f2f2;
+    }
+
+    /* HEADER */
+    header {
+      position: relative; /* So we can position the robot inside it */
+      background: #ffffff;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;  /* Keep the robot within this area */
+      min-height: 140px; /* Enough vertical space for the robot & lightbulb */
+      transition: background-color 0.3s; /* Smooth theme transition */
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+    }
+
+    /* MOON ICON TOGGLE */
+    .moon-icon {
+      cursor: pointer;
       width: 24px;
       height: 24px;
-      margin-right: 10px;
-      display: none;
+      margin-left: 1rem;
+      transition: fill 0.3s;
     }
-    .about-content {
-      max-width: 600px;
-      padding: 20px;
-      box-sizing: border-box;
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
-    .coffee-link {
-      color: #ffcc00;
-      text-decoration: underline;
-      cursor: pointer;
-      text-shadow: 0 0 5px #ffcc00;
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+      color: #fff;
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      transition: background-color 0.3s, color 0.3s;
     }
-    .coffee-link:hover {
-      color: #ffdd33;
-      text-shadow: 0 0 8px #ffcc00;
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
     }
-    /* Responsive Styles */
-    @media (max-width: 768px) {
-      .input-container {
-        flex-wrap: wrap;
-      }
-      input[type="text"], button {
-        width: 100%;
-        max-width: none;
-        margin: 5px 0;
-      }
-      h1 {
-        font-size: 2em;
-      }
-      p {
-        font-size: 0.9em;
-      }
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto 2rem auto;
     }
-    @media (max-width: 480px) {
-      .nav a {
-        font-size: 0.9em;
-        margin-right: 10px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-      p {
-        font-size: 0.85em;
-      }
+    .hero .cta-button {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background-color: #fff;
+      color: #a18cd1;
+      font-weight: bold;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    .hero .cta-button:hover {
+      background-color: #f2f2f2;
+    }
+
+    .agent-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform 0.2s;
+      height: 100%;
+    }
+    .agent-card:hover {
+      transform: translateY(-3px);
+    }
+    
+    /* Card images */
+    .agent-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    /* PROJECTS SECTION */
+    .projects {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 0 1rem;
+    }
+    .projects h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+    .project-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .project-item {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 1rem;
+      transition: transform 0.2s;
+    }
+    .project-item:hover {
+      transform: translateY(-3px);
+    }
+
+    /* FOOTER */
+    footer {
+      background: #ffffff;
+      padding: 1rem 2rem;
+      text-align: center;
+      margin-top: 3rem;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    footer p {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ROBOT CONTAINER */
+    #robot {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      z-index: 9999;
+      cursor: grab; 
+      /* 
+        Start far off-screen to the right for a smooth slide-in.
+        We'll animate to the actual position on page load.
+      */
+      transform: translateX(2000px);
+      transition: transform 1s ease-out; /* smooth slide from off-screen */
+      visibility: hidden; /* hide until we're ready to animate */
+    }
+    #robot:active {
+      cursor: grabbing;
+    }
+
+    /* LIGHTBULB PNG (above robot's head, not selectable) */
+    #idea-bulb {
+      position: absolute;
+      top: -30px; /* above the robot’s head */
+      left: 15px;
+      width: 30px;
+      display: none; /* hidden by default */
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* WHEEL VIBRATION ANIMATION */
+    .vibrating #wheel-left,
+    .vibrating #wheel-right {
+      animation: wheelVibrate 0.2s infinite linear;
+    }
+    @keyframes wheelVibrate {
+      0%, 100% { transform: translate(0,0); }
+      50%      { transform: translate(1px,0); }
+    }
+    #wheel-left, #wheel-right {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    /* Smooth snapping on Y changes */
+    .snap-transition {
+      transition: transform 0.5s ease-out;
     }
   </style>
 </head>
 <body>
-  <div class="nav">
-    <a href="#" onclick="showPage('home')">Home</a>
-    <a href="#" onclick="showPage('about')">About</a>
-  </div>
 
-  <div class="main-container">
-    <div id="home" class="content">
-      <h1>AI Crypto Oracle</h1>
-      <p>Powered by xAI’s cutting-edge quantum crypto-prediction engine. Ask, and the machine shall decree your fate.</p>
-      <div class="input-container">
-        <img id="coinImage" src="" alt="Coin Icon">
-        <input type="text" id="coinInput" placeholder="Enter a coin (e.g., Bitcoin or BTC)" oninput="searchCoin()" onkeypress="if(event.key === 'Enter') analyzeCoin()">
-        <button onclick="analyzeCoin()">Consult the Oracle</button>
-      </div>
-      <div id="loading" class="pulse">Processing through neural blockchain matrix...</div>
-      <div id="result"></div>
-      <div id="shareLink" onclick="copyShareLink()">Share</div>
-    </div>
-
-    <div id="about" class="content" style="display: none;">
-      <h1>About AI Crypto Oracle</h1>
-      <div class="about-content">
-        <p>Welcome to <strong>AI Crypto Oracle</strong>, your satirical guide to the wild world of cryptocurrency! This site uses a playful, made-up AI to humorously tell you <em>NO</em> whenever you ask if you should buy a crypto coin. It’s not real financial advice, nor is it remotely serious—think of it as a fun, absurd experiment powered by xAI’s whimsical imagination.</p>
-        <p>We’re not here to tell you what to do with your money (or your memes). Go ahead, buy that coin, sell it, hodl it, or toss it in the digital void—do whatever you want! But if you have too much money you want to spend, why not buy us a coffee? <a href="https://www.buymeacoffee.com/barelysmartai" target="_blank" class="coffee-link">Buy Me a Coffee</a><br><strong>We can 100% guarantee a 0% return if you buy us a coffee.</strong></p>
-        <p>Enjoy the satire, but always consult actual financial experts and do your own research before making any investment decisions. Or don’t—your call!</p>
+  <!-- HEADER WITH THE ROBOT -->
+  <header>
+    <div class="logo">Barely Smart AI</div>
+    <div class="header-right">
+      <!-- Moon Icon Toggle -->
+      <div class="moon-icon" id="theme-toggle" title="Toggle Dark Mode">
+        <!-- Simple Moon SVG Icon -->
+        <svg viewBox="0 0 24 24" fill="none" width="24" height="24"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1111.21 3
+                   7 7 0 0021 12.79z"></path>
+        </svg>
       </div>
     </div>
-  </div>
+
+    <!-- INLINE SVG ROBOT (Square head/body, antennas, vibrating wheels) -->
+    <div id="robot" class="vibrating">
+      <!-- Lightbulb PNG -->
+      <img id="idea-bulb" src="assets/lightbulb.png" alt="Idea Bulb" />
+
+      <svg 
+        width="60" 
+        height="60" 
+        viewBox="0 0 60 60" 
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <!-- Antennas -->
+        <line x1="25" y1="2" x2="25" y2="7" stroke="#000" stroke-width="2" />
+        <line x1="35" y1="2" x2="35" y2="7" stroke="#000" stroke-width="2" />
+
+        <!-- Head (square) -->
+        <rect 
+          x="20" y="7" width="20" height="20" 
+          fill="#6ec6f1" 
+          stroke="#333" 
+          stroke-width="2"
+          rx="2"
+        />
+        <!-- Eyes -->
+        <circle cx="26" cy="14" r="2" fill="#333"/>
+        <circle cx="34" cy="14" r="2" fill="#333"/>
+        <!-- Mouth (line) -->
+        <line x1="26" y1="18" x2="34" y2="18" stroke="#333" stroke-width="2" />
+
+        <!-- Body (square) -->
+        <rect 
+          x="20" y="27" width="20" height="20" 
+          fill="#e46e6e" 
+          stroke="#333" 
+          stroke-width="2"
+          rx="2"
+        />
+        <!-- Arms -->
+        <line x1="20" y1="33" x2="10" y2="33" stroke="#333" stroke-width="3" />
+        <line x1="40" y1="33" x2="50" y2="33" stroke="#333" stroke-width="3" />
+
+        <!-- Wheels (vibrate in place) -->
+        <circle id="wheel-left"  cx="25" cy="50" r="5" fill="#333" />
+        <circle id="wheel-right" cx="35" cy="50" r="5" fill="#333" />
+      </svg>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <h1>The Future of AI is Now... We Think.</h1>
+    <p>
+      Welcome to Barely Smart AI, where we boldly blur the line between brilliance 
+      and baffling. Our questionable AI agents are here to (almost) revolutionize 
+      the tech world—one glitch at a time.
+    </p>
+    <a href="#projects" class="cta-button">Our Chaotic Creations</a>
+  </section>
+
+  <!-- PROJECTS SECTION -->
+  <!-- PROJECTS SECTION -->
+<section id="projects" class="projects">
+    <h2>Our Chaotic Creations</h2>
+    <div class="project-list">
+      <a href="cryptooracle/index.html" class="agent-card-link">
+        <div class="agent-card">
+          <img src="cryptooracle/aicryptooracle.png" alt="AI Crypto Oracle" />
+          <h3>AI Crypto Oracle</h3>
+          <p>
+            Quantum crypto-prediction engine. Ask, and the machine shall decree your fate.
+          </p>
+        </div>
+      </a>
+      <a href="whocaresaboutfacts/index.html" class="agent-card-link">
+        <div class="agent-card">
+          <img src="whocaresaboutfacts/whocaresaboutfacts.png" alt="Who Cares About Facts" />
+          <h3>Who Cares About Facts</h3>
+          <p>
+            Your opinion is much more important than facts.
+          </p>
+        </div>
+      </a>
+      <a href="shadow/index.html" class="agent-card-link">
+        <div class="agent-card">
+          <img src="shadow/assets/ninja.png" alt="Shadow Ninja" />
+          <h3>Shadow Ninja</h3>
+          <p>
+            Throw shurikens, slay monsters, and own the darkness!
+          </p>
+        </div>
+      </a>
+      <a href="agi/index.html" class="agent-card-link">
+        <div class="agent-card">
+          <img src="agi/openeye.png" alt="AGI" />
+          <h3>AGI</h3>
+          <p>
+            Our AGI has arrived but is currently napping—don’t wake it, or you might trigger a digital apocalypse.
+          </p>
+        </div>
+      </a>
+    </div>
+  </section>
+  
+
+  <!-- FOOTER / CONTACT -->
+  <footer id="contact">
+    <div class="footer-left">
+      <p>
+        Want to share your wild AI ideas, request a glitchy feature,<br>
+        or just laugh at our bugs?<br>
+        Drop us a line at 
+        <a href="mailto:barelysmartai@gmail.com">barelysmartai@gmail.com</a>
+      </p>
+    </div>
+    <div class="footer-right">
+      <p>
+        <a href="https://www.buymeacoffee.com/barelysmartai" target="_blank" class="coffee-link">Buy Us a Coffee</a><br>
+        <em>Disclaimer:</em> Our AI may not be as “smart” as advertised,<br>
+        but we sure have fun pretending it is!
+      </p>
+    </div>
+  </footer>
+  
+  <style>
+    /* Footer layout */
+    #contact {
+      background: #fff; /* White background */
+      color: #333;      /* Dark text for contrast */
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 3rem;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .footer-left, 
+    .footer-right {
+      flex: 1; /* Distribute space evenly */
+      max-width: 50%;
+    }
+    #contact p {
+      margin: 0.5rem 0;
+      line-height: 1.4;
+    }
+    /* Link styling */
+    #contact a {
+      color: #d44dd6 // #0077ff;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    #contact a:hover {
+      text-decoration: underline;
+    }
+  </style>
 
   <script>
-    // Instead of using a transform, update the header's top property directly
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', function() {
-        document.querySelector('.nav').style.top = window.visualViewport.offsetTop + 'px';
+    /**
+     * The robot:
+     *  - Starts off-screen to the right and slides into the right edge on load.
+     *  - Moves left/right, bounces horizontally with vibrating wheels.
+     *  - Can be grabbed and thrown (no big eyes).
+     *  - After release, snaps back to y=50, then resumes speed.
+     *  - Occasionally stops to show a PNG lightbulb, then continues.
+     */
+    const robot = document.getElementById('robot');
+    const ideaBulb = document.getElementById('idea-bulb');
+    const header = document.querySelector('header');
+
+    let x = 0;            // horizontal position
+    let vx = -2;          // negative => moves left initially
+    const initialY = 50;  // robot's "home" vertical position
+    let y = initialY;
+    let moving = true;    
+    let dragging = false; 
+
+    // For drag offsets & throw velocity
+    let offsetX = 0, offsetY = 0;
+    let prevMouseX = 0, prevMouseY = 0;
+    let mouseVX = 0;
+
+    const MOVE_INTERVAL = 30; // ms
+    const IDEA_INTERVAL_MIN = 4000;
+    const IDEA_INTERVAL_MAX = 8000;
+
+    // Wait for page load, then place the robot at right edge & reveal it
+    window.addEventListener('load', () => {
+      const rect = header.getBoundingClientRect();
+      x = rect.width - robot.offsetWidth; // start from right edge
+      robot.style.visibility = 'visible'; // reveal
+      updateRobotPosition(); // triggers the 1s slide from transformX(2000px) to final x
+    });
+
+    function updateRobotPosition() {
+      // Add a class for a smooth snap transition if we want to handle y changes
+      robot.classList.add('snap-transition');
+      robot.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    // DRAG & THROW
+    robot.addEventListener('mousedown', (e) => {
+      dragging = true;
+      moving = false; // pause auto-move
+
+      // Remove the snap transition so the robot can follow the mouse directly
+      robot.classList.remove('snap-transition');
+
+      const robotRect = robot.getBoundingClientRect();
+      offsetX = e.clientX - robotRect.left;
+      offsetY = e.clientY - robotRect.top;
+
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+
+      const headerRect = header.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+
+      // Move robot to follow mouse
+      x = mouseX - headerRect.left - offsetX;
+      y = mouseY - headerRect.top - offsetY;
+
+      // Constrain within header
+      const maxX = headerRect.width - robot.offsetWidth;
+      const maxY = headerRect.height - robot.offsetHeight;
+      if (x < 0) x = 0;
+      if (x > maxX) x = maxX;
+      if (y < 0) y = 0;
+      if (y > maxY) y = maxY;
+
+      // Compute horizontal velocity from mouse
+      mouseVX = mouseX - prevMouseX;
+      prevMouseX = mouseX;
+      prevMouseY = mouseY;
+
+      robot.style.transform = `translate(${x}px, ${y}px)`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+
+      // Re-add the snap transition for a smooth vertical snap
+      robot.classList.add('snap-transition');
+
+      // Use horizontal velocity
+      vx = mouseVX * 0.3; // scale for throw speed
+
+      // Snap back to initial Y, then resume movement
+      snapToInitialY(() => {
+        moving = true; // resume auto-move
       });
+    });
+
+    // Snap to y=50 with a smooth transition
+    function snapToInitialY(callback) {
+      y = initialY;
+      updateRobotPosition();
+      // Wait for .5s transition to finish
+      setTimeout(() => {
+        if (callback) callback();
+      }, 500);
     }
 
-    // (Existing script logic for coin fetching, search, analyze, etc. remains unchanged)
-    const reasons = [
-      "because the neural net detected a 98% chance of cosmic rug-pull.",
-      "since the quantum hash vibes are misaligned with Saturn’s orbit.",
-      "because the AI saw a bearish meme on X.",
-      "due to excessive volatility in the Ethereum shadow realm.",
-      "because the blockchain gods demand a blood moon first.",
-      "since our predictive AI smelled FUD in the digital wind.",
-      "because the coin’s energy signature is giving dial-up modem vibes.",
-      "due to a detected anomaly in the HODL continuum.",
-      "because the AI’s pet algorithm barked at the chart.",
-      "since the decentralized tea leaves spell ‘wen dump?’",
-      "because the market cap is haunted by ghost wallets.",
-      "since the AI’s flux capacitor rejected the transaction.",
-      "because the coin’s whitepaper reads like a sci-fi flop.",
-      "due to a sudden spike in intergalactic FOMO interference.",
-      "because the hash rate is dancing to a polka beat.",
-      "since the AI’s crystal ball fogged up with despair.",
-      "because the coin’s logo looks like a rejected NFT.",
-      "due to a misalignment in the proof-of-stake zodiac.",
-      "because the blockchain fairies whispered ‘nope’ at midnight.",
-      "since the AI detected a glitch in the greed matrix."
-    ];
+    // AUTO-MOVE & BOUNCE
+    function autoMove() {
+      if (!moving || dragging) return;
 
-    let coinData = {};
+      x += vx;
+      const rect = header.getBoundingClientRect();
+      const maxX = rect.width - robot.offsetWidth;
 
-    async function fetchPopularCoins() {
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        data.forEach(coin => {
-          coinData[coin.name.toLowerCase()] = coin.image;
-          coinData[coin.symbol.toUpperCase()] = coin.image;
-        });
-      } catch (error) {
-        console.error("Error fetching popular coins:", error);
+      if (x < 0) {
+        x = 0;
+        vx = -vx;
+      } else if (x > maxX) {
+        x = maxX;
+        vx = -vx;
       }
+      robot.style.transform = `translate(${x}px, ${y}px)`;
     }
 
-    async function searchCoin() {
-      const input = document.getElementById("coinInput").value.trim().toLowerCase();
-      const coinImage = document.getElementById("coinImage");
-      if (input.length < 3) {
-        coinImage.style.display = "none";
-        return;
-      }
-      if (coinData[input] || coinData[input.toUpperCase()]) {
-        coinImage.src = coinData[input] || coinData[input.toUpperCase()];
-        coinImage.style.display = "inline";
-        return;
-      }
-      const url = `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(input)}`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.coins && data.coins.length > 0) {
-          const popularCoin = data.coins[0];
-          const marketDataUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${popularCoin.id}&order=market_cap_desc&per_page=1&page=1&sparkline=false`;
-          const marketResponse = await fetch(marketDataUrl);
-          const marketData = await marketResponse.json();
-          if (marketData && marketData.length > 0) {
-            const coin = marketData[0];
-            coinData[coin.name.toLowerCase()] = coin.image;
-            coinData[coin.symbol.toUpperCase()] = coin.image;
-            coinImage.src = coin.image;
-            coinImage.style.display = "inline";
-            document.getElementById("coinInput").value = coin.name;
-          } else {
-            coinImage.style.display = "none";
-          }
-        } else {
-          coinImage.style.display = "none";
-        }
-      } catch (error) {
-        console.error("Error searching coin data:", error);
-        coinImage.style.display = "none";
-      }
-    }
-
-    function analyzeCoin() {
-      const coin = document.getElementById("coinInput").value.trim();
-      const resultDiv = document.getElementById("result");
-      const loadingDiv = document.getElementById("loading");
-      const shareLinkDiv = document.getElementById("shareLink");
-
-      if (!coin) {
-        resultDiv.innerHTML = "ERROR: Input a coin, human!";
-        resultDiv.style.display = "block";
-        loadingDiv.style.display = "none";
-        shareLinkDiv.style.display = "none";
-        return;
-      }
-
-      resultDiv.style.display = "none";
-      shareLinkDiv.style.display = "none";
-      loadingDiv.style.display = "block";
+    // IDEA EVENT
+    function showIdea() {
+      if (dragging) return; // skip if user is dragging
+      moving = false;
+      robot.classList.remove('vibrating'); // stop wheel vibration
+      ideaBulb.style.display = 'block';
 
       setTimeout(() => {
-        const randomReason = reasons[Math.floor(Math.random() * reasons.length)];
-        const resultText = `NO, don’t buy ${coin} ${randomReason}`;
-        resultDiv.innerHTML = resultText;
-        resultDiv.style.display = "block";
-        loadingDiv.style.display = "none";
-
-        const encodedCoin = encodeURIComponent(coin);
-        const encodedReason = encodeURIComponent(randomReason);
-        const shareUrl = `${window.location.href}?coin=${encodedCoin}&reason=${encodedReason}`;
-        shareLinkDiv.setAttribute("data-link", shareUrl);
-        shareLinkDiv.style.display = "block";
-      }, Math.random() * 1000 + 2000);
+        ideaBulb.style.display = 'none';
+        robot.classList.add('vibrating');
+        moving = true;
+      }, 1500);
     }
 
-    function copyShareLink() {
-      const shareLinkDiv = document.getElementById("shareLink");
-      const shareUrl = shareLinkDiv.getAttribute("data-link");
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        alert("Link copied to clipboard! Spread the oracle’s wisdom.");
-      }).catch(() => {
-        alert("Failed to copy link. The machine disapproves.");
-      });
+    function scheduleIdea() {
+      const delay = Math.floor(
+        Math.random() * (IDEA_INTERVAL_MAX - IDEA_INTERVAL_MIN) + IDEA_INTERVAL_MIN
+      );
+      setTimeout(() => {
+        showIdea();
+        scheduleIdea();
+      }, delay);
     }
 
-    function showPage(page) {
-      const home = document.getElementById("home");
-      const about = document.getElementById("about");
-      if (page === "home") {
-        home.style.display = "block";
-        about.style.display = "none";
-      } else if (page === "about") {
-        home.style.display = "none";
-        about.style.display = "block";
-      }
-    }
+    // INIT auto-move & idea schedule
+    robot.classList.add('vibrating'); // wheels vibrate by default
+    setInterval(autoMove, MOVE_INTERVAL);
+    scheduleIdea();
 
-    window.onload = async () => {
-      await fetchPopularCoins();
-      const urlParams = new URLSearchParams(window.location.search);
-      const coin = urlParams.get("coin");
-      const reason = urlParams.get("reason");
-      if (coin && reason) {
-        const resultDiv = document.getElementById("result");
-        const shareLinkDiv = document.getElementById("shareLink");
-        resultDiv.innerHTML = `NO, don’t buy ${decodeURIComponent(coin)} ${decodeURIComponent(reason)}`;
-        resultDiv.style.display = "block";
-        document.getElementById("coinInput").value = decodeURIComponent(coin);
-        await searchCoin();
-        shareLinkDiv.setAttribute("data-link", window.location.href);
-        shareLinkDiv.style.display = "block";
-      }
-    };
+    // THEME TOGGLE: MOON ICON
+    const themeToggle = document.getElementById('theme-toggle');
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
   </script>
 </body>
 </html>
