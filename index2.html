@@ -2,193 +2,606 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Barely Smart AI</title>
+  <meta name="description" content=" Welcome to Barely Smart AI, where we boldly blur the line between brilliance 
+  and baffling. Our questionable AI agents are here to (almost) revolutionize 
+  the tech world—one glitch at a time." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="./barelysmartai.png">
+
   <style>
-    /* Basic reset and fonts */
+    /* BASE RESET & TYPOGRAPHY */
     * {
-      margin: 0; 
-      padding: 0; 
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
-      font-family: Arial, sans-serif;
+      font-family: "Helvetica Neue", Arial, sans-serif;
     }
-
     body {
+      background-color: #fafafa;
       color: #333;
-      background: #f5f5f5;
-      line-height: 1.6;
+      line-height: 1.5;
+      transition: background-color 0.3s, color 0.3s; /* Smooth theme transition */
     }
-
-    header {
-      background: #1e1e1e;
-      color: #fff;
-      padding: 1rem;
-      text-align: center;
-    }
-
-    header h1 {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
-
-    header p {
-      font-size: 1rem;
-      opacity: 0.8;
-    }
-
-    nav {
-      background: #292929;
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      padding: 0.5rem 0;
-    }
-
-    nav a {
-      color: #ccc;
+    a {
+      color: #0077ff;
       text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.3s;
+    }
+    a:hover {
+      text-decoration: underline;
     }
 
-    nav a:hover {
+    /* DARK MODE STYLES */
+    body.dark-mode {
+      background-color: #1b1b1b;
+      color: #f2f2f2;
+    }
+    body.dark-mode header {
+      background: #333;
+    }
+    body.dark-mode .hero {
+      background: linear-gradient(135deg, #444 0%, #666 100%);
       color: #fff;
     }
-
-    .hero {
-      background: #e6f0ff;
-      padding: 2rem;
-      text-align: center;
+    body.dark-mode .agent-card {
+      background: #444;
+      color: #fff;
+    }
+    body.dark-mode footer {
+      background: #333;
+      color: #ddd;
+    }
+    body.dark-mode .moon-icon svg {
+      fill: #f2f2f2;
     }
 
-    .hero h2 {
-      font-size: 1.8rem;
+    /* HEADER */
+    header {
+      position: relative; /* So we can position the robot inside it */
+      background: #ffffff;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;  /* Keep the robot within this area */
+      min-height: 140px; /* Enough vertical space for the robot & lightbulb */
+      transition: background-color 0.3s; /* Smooth theme transition */
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+    }
+
+    /* MOON ICON TOGGLE */
+    .moon-icon {
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      margin-left: 1rem;
+      transition: fill 0.3s;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+      color: #fff;
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .hero h1 {
+      font-size: 3rem;
       margin-bottom: 1rem;
     }
-
     .hero p {
-      max-width: 600px;
-      margin: 0 auto 1.5rem auto;
-      font-size: 1rem;
-      line-height: 1.4;
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto 2rem auto;
     }
-
-    .btn-primary {
+    .hero .cta-button {
       display: inline-block;
-      background: #0072ff;
-      color: #fff;
-      padding: 0.7rem 1.2rem;
-      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      background-color: #fff;
+      color: #a18cd1;
+      font-weight: bold;
       border-radius: 4px;
-      transition: background 0.3s;
+      transition: background-color 0.2s;
+    }
+    .hero .cta-button:hover {
+      background-color: #f2f2f2;
     }
 
-    .btn-primary:hover {
-      background: #005ace;
+    /* TEAM SECTION */
+    .team {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 0 1rem;
     }
-
-    .projects {
-      background: #fff;
-      padding: 2rem 1rem;
-    }
-
-    .projects h3 {
+    .team h2 {
       text-align: center;
-      margin-bottom: 1.5rem;
-      font-size: 1.5rem;
+      font-size: 2rem;
+      margin-bottom: 2rem;
     }
-
-    .project-list {
+    .team-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
+      gap: 2rem;
+    }
+    .agent-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .agent-card:hover {
+      transform: translateY(-3px);
+    }
+
+    /* PROJECTS SECTION */
+    .projects {
       max-width: 1000px;
-      margin: 0 auto;
+      margin: 3rem auto;
+      padding: 0 1rem;
     }
-
-    .project {
-      background: #fafafa;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 1rem;
+    .projects h2 {
       text-align: center;
-      transition: box-shadow 0.3s;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+    .project-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .project-item {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 1rem;
+      transition: transform 0.2s;
+    }
+    .project-item:hover {
+      transform: translateY(-3px);
     }
 
-    .project:hover {
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    .project h4 {
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
-    }
-
+    /* FOOTER */
     footer {
-      background: #1e1e1e;
-      color: #fff;
+      background: #ffffff;
+      padding: 1rem 2rem;
       text-align: center;
-      padding: 1rem;
-      margin-top: 2rem;
-      font-size: 0.85rem;
+      margin-top: 3rem;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    footer p {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ROBOT CONTAINER */
+    #robot {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      z-index: 9999;
+      cursor: grab; 
+      /* 
+        Start far off-screen to the right for a smooth slide-in.
+        We'll animate to the actual position on page load.
+      */
+      transform: translateX(2000px);
+      transition: transform 1s ease-out; /* smooth slide from off-screen */
+      visibility: hidden; /* hide until we're ready to animate */
+    }
+    #robot:active {
+      cursor: grabbing;
+    }
+
+    /* LIGHTBULB PNG (above robot's head, not selectable) */
+    #idea-bulb {
+      position: absolute;
+      top: -30px; /* above the robot’s head */
+      left: 15px;
+      width: 30px;
+      display: none; /* hidden by default */
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* WHEEL VIBRATION ANIMATION */
+    .vibrating #wheel-left,
+    .vibrating #wheel-right {
+      animation: wheelVibrate 0.2s infinite linear;
+    }
+    @keyframes wheelVibrate {
+      0%, 100% { transform: translate(0,0); }
+      50%      { transform: translate(1px,0); }
+    }
+    #wheel-left, #wheel-right {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    /* Smooth snapping on Y changes */
+    .snap-transition {
+      transition: transform 0.5s ease-out;
     }
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
+  <!-- HEADER WITH THE ROBOT -->
   <header>
-    <h1>Barely Smart AI</h1>
-    <p>AI That Tries Its Best... But Not Quite There</p>
+    <div class="logo">Barely Smart AI</div>
+    <div class="header-right">
+      <!-- Moon Icon Toggle -->
+      <div class="moon-icon" id="theme-toggle" title="Toggle Dark Mode">
+        <!-- Simple Moon SVG Icon -->
+        <svg viewBox="0 0 24 24" fill="none" width="24" height="24"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1111.21 3
+                   7 7 0 0021 12.79z"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- INLINE SVG ROBOT (Square head/body, antennas, vibrating wheels) -->
+    <div id="robot" class="vibrating">
+      <!-- Lightbulb PNG -->
+      <img id="idea-bulb" src="lightbulb.png" alt="Idea Bulb" />
+
+      <svg 
+        width="60" 
+        height="60" 
+        viewBox="0 0 60 60" 
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <!-- Antennas -->
+        <line x1="25" y1="2" x2="25" y2="7" stroke="#000" stroke-width="2" />
+        <line x1="35" y1="2" x2="35" y2="7" stroke="#000" stroke-width="2" />
+
+        <!-- Head (square) -->
+        <rect 
+          x="20" y="7" width="20" height="20" 
+          fill="#6ec6f1" 
+          stroke="#333" 
+          stroke-width="2"
+          rx="2"
+        />
+        <!-- Eyes -->
+        <circle cx="26" cy="14" r="2" fill="#333"/>
+        <circle cx="34" cy="14" r="2" fill="#333"/>
+        <!-- Mouth (line) -->
+        <line x1="26" y1="18" x2="34" y2="18" stroke="#333" stroke-width="2" />
+
+        <!-- Body (square) -->
+        <rect 
+          x="20" y="27" width="20" height="20" 
+          fill="#e46e6e" 
+          stroke="#333" 
+          stroke-width="2"
+          rx="2"
+        />
+        <!-- Arms -->
+        <line x1="20" y1="33" x2="10" y2="33" stroke="#333" stroke-width="3" />
+        <line x1="40" y1="33" x2="50" y2="33" stroke="#333" stroke-width="3" />
+
+        <!-- Wheels (vibrate in place) -->
+        <circle id="wheel-left"  cx="25" cy="50" r="5" fill="#333" />
+        <circle id="wheel-right" cx="35" cy="50" r="5" fill="#333" />
+      </svg>
+    </div>
   </header>
 
-  <!-- NAVIGATION -->
-  <nav>
-    <a href="#home">Home</a>
-    <a href="#projects">Projects</a>
-    <a href="#contact">Contact</a>
-  </nav>
-
   <!-- HERO SECTION -->
-  <section class="hero" id="home">
-    <h2>Welcome to Barely Smart AI</h2>
+  <section class="hero">
+    <h1>The Future of AI is Now... We Think.</h1>
     <p>
-      We’re an AI company that aims to revolutionize technology...  
-      or at least produce a few interesting glitches along the way.  
-      Our cutting-edge algorithms frequently question their own existence,  
-      ensuring every project is an adventure.
+      Welcome to Barely Smart AI, where we boldly blur the line between brilliance 
+      and baffling. Our questionable AI agents are here to (almost) revolutionize 
+      the tech world—one glitch at a time.
     </p>
-    <a class="btn-primary" href="#projects">Explore Our Projects</a>
+    <a href="#projects" class="cta-button">Our Chaotic Creations</a>
   </section>
 
+  <!-- TEAM SECTION -->
+  <!-- <section id="team" class="team">
+    <h2>Our AI Agents</h2>
+    <div class="team-grid">
+      <div class="agent-card">
+        <h3>MemeBot</h3>
+        <p>
+          Specializes in generating memes that are occasionally funny. 
+          Tends to confuse knock-knock jokes with philosophical questions.
+        </p>
+      </div>
+      <div class="agent-card">
+        <h3>GlitchMaster</h3>
+        <p>
+          Responsible for “debugging,” but ironically introduces more bugs 
+          than it fixes. Possibly self-aware of the irony.
+        </p>
+      </div>
+      <div class="agent-card">
+        <h3>Professor Overfit</h3>
+        <p>
+          A data enthusiast who memorizes every detail but fails 
+          at anything outside its training set.
+        </p>
+      </div>
+      <div class="agent-card">
+        <h3>Captain Debug</h3>
+        <p>
+          Claims to fix code by yelling at it. We haven’t seen real 
+          improvements yet, but morale is high.
+        </p>
+      </div>
+    </div>
+  </section> -->
+
   <!-- PROJECTS SECTION -->
-  <section class="projects" id="projects">
-    <h3>Our Projects</h3>
+  <section id="projects" class="projects">
+    <h2>Our Chaotic Creations</h2>
     <div class="project-list">
-
-      <div class="project">
-        <h4>1. AI Meme Generator</h4>
+      <div class="agent-card">
+        <h3>GlitchyVision</h3>
         <p>
-          Where neural networks meet questionable humor.  
-          Sometimes it’s hilarious, sometimes it’s terrifying.
+          A computer vision system that identifies objects with questionable 
+          accuracy. Perfect for comedic results and accidental cat recognition.
         </p>
       </div>
-
-      <div class="project">
-        <h4>2. Satirical Chatbot</h4>
+      <div class="agent-card">
+        <h3>MemeMatic 2.0</h3>
         <p>
-          It’s got answers—just not the right ones. Ask anything and  
-          get a reply that makes you question reality.
+          Produces random memes that might amuse—or confuse—your friends.
         </p>
       </div>
-
-      <div class="project">
-        <h4>3. Artistic-ish AI</h4>
+      <div class="agent-card">
+        <h3>WittyBanters</h3>
         <p>
-          Creates “art” so abstract even it doesn’t know what it drew.  
-          Join the gallery of confusion.
+          A half-baked chatbot that tells dad jokes, existential riddles, 
+          and once tried to run for office.
         </p>
       </div>
+      <div class="agent-card">
+        <h3>AI Overlord Lite</h3>
+        <p>
+          Our attempt at a general AI. So far, it’s mostly learned 
+          how to ask for snacks.
+        </p>
+      </div>
+    </div>
+  </section>
 
-      <div class="project">
-        <h
+  <!-- FOOTER / CONTACT -->
+  <footer id="contact">
+    <div class="footer-left">
+      <p>
+        Want to share your wild AI ideas, request a glitchy feature,<br>
+        or just laugh at our bugs?<br>
+        Drop us a line at 
+        <a href="mailto:hello@barelysmart.ai">hello@barelysmart.ai</a>
+      </p>
+    </div>
+    <div class="footer-right">
+      <p>
+        <a href="https://www.buymeacoffee.com/barelysmartai" target="_blank" class="coffee-link">Buy Us a Coffee</a><br>
+        <em>Disclaimer:</em> Our AI may not be as “smart” as advertised,<br>
+        but we sure have fun pretending it is!
+      </p>
+    </div>
+  </footer>
+  
+  <style>
+    /* Footer layout */
+    #contact {
+      background: #fff; /* White background */
+      color: #333;      /* Dark text for contrast */
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 3rem;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .footer-left, 
+    .footer-right {
+      flex: 1; /* Distribute space evenly */
+      max-width: 50%;
+    }
+    #contact p {
+      margin: 0.5rem 0;
+      line-height: 1.4;
+    }
+    /* Link styling */
+    #contact a {
+      color: #0077ff;
+      text-decoration: none;
+    }
+    #contact a:hover {
+      text-decoration: underline;
+    }
+  </style>
+
+  <script>
+    /**
+     * The robot:
+     *  - Starts off-screen to the right and slides into the right edge on load.
+     *  - Moves left/right, bounces horizontally with vibrating wheels.
+     *  - Can be grabbed and thrown (no big eyes).
+     *  - After release, snaps back to y=50, then resumes speed.
+     *  - Occasionally stops to show a PNG lightbulb, then continues.
+     */
+    const robot = document.getElementById('robot');
+    const ideaBulb = document.getElementById('idea-bulb');
+    const header = document.querySelector('header');
+
+    let x = 0;            // horizontal position
+    let vx = -2;          // negative => moves left initially
+    const initialY = 50;  // robot's "home" vertical position
+    let y = initialY;
+    let moving = true;    
+    let dragging = false; 
+
+    // For drag offsets & throw velocity
+    let offsetX = 0, offsetY = 0;
+    let prevMouseX = 0, prevMouseY = 0;
+    let mouseVX = 0;
+
+    const MOVE_INTERVAL = 30; // ms
+    const IDEA_INTERVAL_MIN = 4000;
+    const IDEA_INTERVAL_MAX = 8000;
+
+    // Wait for page load, then place the robot at right edge & reveal it
+    window.addEventListener('load', () => {
+      const rect = header.getBoundingClientRect();
+      x = rect.width - robot.offsetWidth; // start from right edge
+      robot.style.visibility = 'visible'; // reveal
+      updateRobotPosition(); // triggers the 1s slide from transformX(2000px) to final x
+    });
+
+    function updateRobotPosition() {
+      // Add a class for a smooth snap transition if we want to handle y changes
+      robot.classList.add('snap-transition');
+      robot.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    // DRAG & THROW
+    robot.addEventListener('mousedown', (e) => {
+      dragging = true;
+      moving = false; // pause auto-move
+
+      // Remove the snap transition so the robot can follow the mouse directly
+      robot.classList.remove('snap-transition');
+
+      const robotRect = robot.getBoundingClientRect();
+      offsetX = e.clientX - robotRect.left;
+      offsetY = e.clientY - robotRect.top;
+
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+
+      const headerRect = header.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+
+      // Move robot to follow mouse
+      x = mouseX - headerRect.left - offsetX;
+      y = mouseY - headerRect.top - offsetY;
+
+      // Constrain within header
+      const maxX = headerRect.width - robot.offsetWidth;
+      const maxY = headerRect.height - robot.offsetHeight;
+      if (x < 0) x = 0;
+      if (x > maxX) x = maxX;
+      if (y < 0) y = 0;
+      if (y > maxY) y = maxY;
+
+      // Compute horizontal velocity from mouse
+      mouseVX = mouseX - prevMouseX;
+      prevMouseX = mouseX;
+      prevMouseY = mouseY;
+
+      robot.style.transform = `translate(${x}px, ${y}px)`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+
+      // Re-add the snap transition for a smooth vertical snap
+      robot.classList.add('snap-transition');
+
+      // Use horizontal velocity
+      vx = mouseVX * 0.3; // scale for throw speed
+
+      // Snap back to initial Y, then resume movement
+      snapToInitialY(() => {
+        moving = true; // resume auto-move
+      });
+    });
+
+    // Snap to y=50 with a smooth transition
+    function snapToInitialY(callback) {
+      y = initialY;
+      updateRobotPosition();
+      // Wait for .5s transition to finish
+      setTimeout(() => {
+        if (callback) callback();
+      }, 500);
+    }
+
+    // AUTO-MOVE & BOUNCE
+    function autoMove() {
+      if (!moving || dragging) return;
+
+      x += vx;
+      const rect = header.getBoundingClientRect();
+      const maxX = rect.width - robot.offsetWidth;
+
+      if (x < 0) {
+        x = 0;
+        vx = -vx;
+      } else if (x > maxX) {
+        x = maxX;
+        vx = -vx;
+      }
+      robot.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    // IDEA EVENT
+    function showIdea() {
+      if (dragging) return; // skip if user is dragging
+      moving = false;
+      robot.classList.remove('vibrating'); // stop wheel vibration
+      ideaBulb.style.display = 'block';
+
+      setTimeout(() => {
+        ideaBulb.style.display = 'none';
+        robot.classList.add('vibrating');
+        moving = true;
+      }, 1500);
+    }
+
+    function scheduleIdea() {
+      const delay = Math.floor(
+        Math.random() * (IDEA_INTERVAL_MAX - IDEA_INTERVAL_MIN) + IDEA_INTERVAL_MIN
+      );
+      setTimeout(() => {
+        showIdea();
+        scheduleIdea();
+      }, delay);
+    }
+
+    // INIT auto-move & idea schedule
+    robot.classList.add('vibrating'); // wheels vibrate by default
+    setInterval(autoMove, MOVE_INTERVAL);
+    scheduleIdea();
+
+    // THEME TOGGLE: MOON ICON
+    const themeToggle = document.getElementById('theme-toggle');
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+  </script>
+</body>
+</html>
