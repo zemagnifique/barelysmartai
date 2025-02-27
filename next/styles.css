@@ -1,0 +1,185 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #1a1a1a;
+    font-family: 'Bungee', cursive, sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+    height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100vh;
+}
+
+header {
+    margin-bottom: 20px;
+}
+
+.logo {
+    font-size: 2.5em;
+    color: #fff;
+    text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; /* Neon green glow */
+    position: relative;
+}
+
+.logo .glitch {
+    animation: glitch 2s linear infinite;
+}
+
+.tagline {
+    font-size: 1.2em;
+    color: #ff8c00; /* Neon orange */
+    margin: 0;
+}
+
+nav {
+    margin-bottom: 40px;
+}
+
+nav a {
+    color: #00ff00; /* Neon green */
+    text-decoration: none;
+    margin: 0 10px;
+    font-size: 1.1em;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #ff8c00; /* Neon orange on hover */
+}
+
+main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero {
+    margin-bottom: 40px;
+}
+
+.hero-image {
+    max-width: 400px;
+    filter: grayscale(50%) blur(2px); /* Glitchy, broken look */
+    animation: shake 1s infinite;
+}
+
+.glitch-text {
+    font-size: 2em;
+    color: #fff;
+    animation: glitch 2s linear infinite;
+}
+
+.features, .team, .join {
+    margin-top: 40px;
+    max-width: 800px;
+}
+
+.feature, .team ul, .join {
+    margin: 20px 0;
+}
+
+.feature h4, .team h3, .join h3 {
+    font-size: 1.2em;
+    color: #fff;
+}
+
+.feature p {
+    font-size: 1em;
+    color: #ccc;
+}
+
+button {
+    background-color: #00ff00;
+    color: #1a1a1a;
+    border: none;
+    padding: 10px 20px;
+    font-family: 'Bungee', cursive;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #ff8c00;
+}
+
+.output {
+    display: none;
+    margin-top: 20px;
+}
+
+.speech-bubble {
+    background-color: #2a2a2a;
+    color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    position: relative;
+    max-width: 300px;
+    font-size: 1.1em;
+}
+
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: #2a2a2a transparent;
+}
+
+footer {
+    font-size: 0.8em;
+    padding: 20px 0;
+}
+
+/* Animations */
+@keyframes glitch {
+    2%, 64% {
+        transform: translate(2px, 0) skew(0deg);
+    }
+    4%, 60% {
+        transform: translate(-2px, 0) skew(0deg);
+    }
+    62% {
+        transform: translate(0, 0) skew(5deg);
+    }
+}
+
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+/* Ensure responsiveness */
+@media (max-width: 768px) {
+    .logo { font-size: 2em; }
+    .tagline { font-size: 1em; }
+    .hero-image { max-width: 300px; }
+    .glitch-text { font-size: 1.5em; }
+    .feature h4, .team h3, .join h3 { font-size: 1em; }
+    .feature p { font-size: 0.9em; }
+}
